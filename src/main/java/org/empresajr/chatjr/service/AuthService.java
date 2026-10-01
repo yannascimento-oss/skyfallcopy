@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.empresajr.chatjr.domain.AccountPrincipal;
 import org.empresajr.chatjr.domain.ClientAccount;
+import org.empresajr.chatjr.domain.PasswordPolicy;
 import org.empresajr.chatjr.repository.ClientAccountRepository;
 import org.empresajr.chatjr.web.ApiException;
 import org.springframework.http.HttpStatus;
@@ -97,6 +98,35 @@ public class AuthService {
         startSession(principal, request, response);
         audit.recordAs(principal.id(), principal.email(), "LOGIN", account.getId(), null, null, null);
         return principal;
+    }
+
+    /**
+     * Troca de senha com a sessão aberta. Errar a senha atual conta como tentativa de login (mesmo bloqueio),
+     * para a sessão aberta não servir de atalho para adivinhar a senha. Sem @Transactional, pelo mesmo motivo do login.
+     */
+    public void changePassword(Long accountId, String currentPassword, String newPassword) {
+        ClientAccount account = accounts.findById(accountId)
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Sessão inválida. Entre novamente."));
+        Instant now = clock.instant();
+        if (account.isLockedAt(now)) {
+            long minutes = Duration.between(now, account.getLockedUntil()).toMinutes() + 1;
+            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Muitas tentativas incorretas. Tente novamente em " + minutes + " minuto(s).");
+        }
+        if (!account.hasPassword() || !encoder.matches(currentPassword, account.getPasswordHash())) {
+            account.registerFailedLogin(now);
+            accounts.save(account);
+            throw new ApiException(HttpStatus.BAD_REQUEST, "A senha atual está incorreta.");
+        }
+        PasswordPolicy.check(newPassword, account.getEmail()).ifPresent(message -> {
+            throw new ApiException(HttpStatus.BAD_REQUEST, message);
+        });
+        if (encoder.matches(newPassword, account.getPasswordHash())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "A nova senha precisa ser diferente da atual.");
+        }
+        account.setNewPassword(encoder.encode(newPassword));
+        accounts.save(account);
+        audit.recordAs(account.getId(), account.getEmail(), "PASSWORD_CHANGED", account.getId(), null, null, null);
     }
 
     public void logout(HttpServletRequest request) {

@@ -240,11 +240,15 @@ public abstract class AbstractIntegrationTest {
         return new ClientLogin(loginOk(email, password), created.get("client").get("id").asLong(), email);
     }
 
+    /** E-mail e senha do administrador criado por {@link #installAndLoginAdmin()}. */
+    protected String adminEmail;
+    protected String adminPassword;
+
     protected MockHttpSession installAndLoginAdmin() throws Exception {
-        String email = randomEmail();
-        String password = randomPassword();
-        install(email, password);
-        return loginOk(email, password);
+        adminEmail = randomEmail();
+        adminPassword = randomPassword();
+        install(adminEmail, adminPassword);
+        return loginOk(adminEmail, adminPassword);
     }
 
     /** PDF de teste com uma linha de texto por item. */

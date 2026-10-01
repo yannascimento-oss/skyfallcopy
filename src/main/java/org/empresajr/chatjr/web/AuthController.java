@@ -10,6 +10,7 @@ import org.empresajr.chatjr.service.AuthService;
 import org.empresajr.chatjr.service.CurrentUser;
 import org.empresajr.chatjr.service.SettingsService;
 import org.empresajr.chatjr.web.dto.AcceptInviteRequest;
+import org.empresajr.chatjr.web.dto.ChangePasswordRequest;
 import org.empresajr.chatjr.web.dto.LoginRequest;
 import org.empresajr.chatjr.web.dto.MeResponse;
 import org.springframework.http.HttpStatus;
@@ -64,6 +65,14 @@ public class AuthController {
         AccountPrincipal principal = CurrentUser.get()
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Sessão inválida. Entre novamente."));
         return meOf(accounts.getAccount(principal.id()));
+    }
+
+    @PostMapping("/me/password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordRequest body) {
+        AccountPrincipal principal = CurrentUser.get()
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Sessão inválida. Entre novamente."));
+        auth.changePassword(principal.id(), body.currentPassword(), body.newPassword());
+        return ResponseEntity.noContent().build();
     }
 
     private MeResponse meOf(ClientAccount account) {

@@ -2,7 +2,9 @@ package org.empresajr.chatjr.web;
 
 import jakarta.validation.Valid;
 import org.empresajr.chatjr.domain.AccountPrincipal;
+import org.empresajr.chatjr.domain.IndicatorCalculator;
 import org.empresajr.chatjr.service.ChatService;
+import org.empresajr.chatjr.service.IndicatorService;
 import org.empresajr.chatjr.web.dto.AskRequest;
 import org.empresajr.chatjr.web.dto.ChatAnswer;
 import org.empresajr.chatjr.web.dto.ConversationView;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -24,15 +27,23 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chat;
+    private final IndicatorService indicators;
 
-    public ChatController(ChatService chat) {
+    public ChatController(ChatService chat, IndicatorService indicators) {
         this.chat = chat;
+        this.indicators = indicators;
     }
 
     @PostMapping
     public ChatAnswer ask(@Valid @RequestBody AskRequest body) {
         AccountPrincipal who = PlanController.caller();
         return chat.ask(who, body.conversationId(), body.question());
+    }
+
+    /** Indicadores das perguntas do próprio cliente. */
+    @GetMapping("/indicators")
+    public IndicatorCalculator.Result myIndicators(@RequestParam(defaultValue = "30") int days) {
+        return indicators.forClient(PlanController.caller().id(), days);
     }
 
     @GetMapping("/conversations")
