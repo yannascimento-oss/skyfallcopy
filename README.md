@@ -1,44 +1,69 @@
 # Chat Jr — Seu Plano de Negócios
 
-Plataforma da Empresa JR (Administração UFBA) em que o cliente consulta, em linguagem natural, o Plano de Negócios
-entregue pela consultoria. A IA trabalha nos bastidores: lê o material de cada etapa, escreve o conteúdo e responde
-somente a partir do plano, sempre indicando a seção usada.
+Plataforma da Empresa JR (Administração UFBA). O cliente consulta, em linguagem natural, o Plano de Negócios entregue
+pela consultoria. A IA trabalha nos bastidores: lê o PDF de cada etapa, responde **só a partir dele** e indica a etapa
+usada. Cada cliente enxerga apenas o próprio plano, e apenas as etapas que a consultoria publicou e liberou.
 
-## Estrutura do repositório
+## Subir o sistema (Docker)
+
+Requisitos: Docker com Compose.
+
+```bash
+cp .env.example .env        # preencha DB_PASSWORD e CHATJR_SECRET (instruções dentro do arquivo)
+docker compose up -d --build
+```
+
+Abra `http://localhost:8080`. No primeiro acesso a tela de **instalação** pede o nome da consultoria, o primeiro
+administrador (e-mail e senha) e, se quiser, a chave da IA. Nada mais é configurado em arquivo.
+
+| Variável (`.env`) | Para quê |
+|---|---|
+| `DB_PASSWORD` | Senha do PostgreSQL. **Obrigatória** |
+| `CHATJR_SECRET` | Texto aleatório de 32+ caracteres que cifra a chave da IA no banco. **Obrigatória.** Gere com `openssl rand -base64 48` e guarde: sem ela a chave da IA gravada não pode ser lida (basta cadastrá-la de novo) |
+| `CHATJR_COOKIE_SECURE` | `true` (padrão) exige HTTPS, exceto em localhost. Use `false` só se publicar sem HTTPS |
+| `ANTHROPIC_API_KEY` | Opcional. Valor inicial da chave; depois é gerida na tela **Integração de IA** |
+
+## Dia a dia
+
+- **Convites:** o sistema não envia e-mail. Ao criar um cliente ou administrador, copie o link do convite e envie você
+  mesmo. Ele vale 48 horas e só funciona uma vez.
+- **Chave da IA, modelo, limites e custo estimado:** telas **Integração de IA** e **Sistema** (inclui "testar conexão").
+- **Sem IA:** se a chave faltar ou a API falhar, o cliente recebe os trechos do próprio plano mais próximos da pergunta, e
+  o processamento de PDF gera o conteúdo sem reescrita. O sistema continua utilizável.
+- **Backup:** guarde o banco e os arquivos.
+  ```bash
+  docker compose exec db pg_dump -U chatjr chatjr > backup-$(date +%F).sql
+  docker run --rm -v chatjr_chatjr-data:/data -v "$PWD":/out alpine tar czf /out/arquivos-$(date +%F).tgz -C /data .
+  ```
+- **Atualizar:** `git pull && docker compose up -d --build` (as migrações do banco rodam sozinhas).
+- **Saúde:** `GET /actuator/health` devolve `{"status":"UP"}`.
+
+## Desenvolvimento
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=dev      # H2 em arquivo, sem Docker
+mvn verify                                              # compila e roda todos os testes (precisa de Docker para o PostgreSQL de teste)
+```
+
+Perfil `demo` (junto de `dev`): cria um administrador e dois clientes de exemplo. Exige `CHATJR_DEMO_PASSWORD` e só roda
+em instalação vazia.
+
+## Estrutura
 
 | Pasta | O que é |
 |---|---|
-| `src/`, `pom.xml` | **Aplicação Java** (Spring Boot 3.3, Java 21, PostgreSQL, Flyway) — em construção na Fase 2 |
-| `prototipo-estatico/` | Protótipo HTML/JS da Fase 1 (dados no navegador, sem login real). Mantido como demonstração e como referência de interface; ver o README dentro dele |
-| `docs/` | Documentação de operação (CI) |
+| `src/`, `pom.xml` | Aplicação Java (Spring Boot 3.3, Java 21, PostgreSQL, Flyway) |
+| `prototipo-estatico/` | Protótipo HTML da Fase 1 (dados no navegador, sem login real); referência de interface |
+| `docs/` | Documentação de operação do CI |
 
-## Estado da Fase 2
+## Segurança, em resumo
 
-| Etapa | Estado |
-|---|---|
-| Esquema do banco (Flyway) validado em PostgreSQL 16 e H2 | feito |
-| Autenticação: BCrypt, sessão, bloqueio após 5 tentativas, convite de 48 h, CSRF, cookies `HttpOnly`/`Secure`/`SameSite=Strict` | escrito, aguardando CI |
-| Instalação inicial pela tela e chave da IA cifrada (AES-GCM) | escrito, aguardando CI |
-| API do plano, escopo por aba, filtro no servidor | a fazer |
-| Upload de PDF (PDFBox), IA, recuperação por relevância (BM25) | a fazer |
-| Interface ligada à API e telas de administração | a fazer |
-| Docker, README de operação, cobertura mínima de 70 % | a fazer |
+Senhas com BCrypt; bloqueio após 5 erros em 15 minutos; sessão de 8 h com cookie `HttpOnly`, `Secure` e
+`SameSite=Strict`; proteção contra CSRF; convites de uso único; chave da IA cifrada (AES-256-GCM) e nunca devolvida pela
+API; todo HTML vindo da IA ou da consultoria passa por sanitização; trilha de auditoria de quem fez o quê.
+A cobertura de testes de `domain` e `service` é verificada no build (mínimo de 70%).
 
-## Rodar em desenvolvimento (sem Docker)
+## Estado
 
-```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
-Usa H2 em arquivo (`./data`). Abra `http://localhost:8080`.
-
-## Variáveis de ambiente (só para o primeiro boot)
-
-| Variável | Para quê |
-|---|---|
-| `CHATJR_SECRET` | Texto longo e aleatório (≥ 32 caracteres) que cifra a chave da IA no banco. **Obrigatória em produção** |
-| `DB_URL`, `DB_USER`, `DB_PASSWORD` | PostgreSQL |
-| `CHATJR_COOKIE_SECURE` | `true` (padrão). Use `false` só se publicar sem HTTPS |
-| `ANTHROPIC_API_KEY` | Valor inicial da chave da IA. Depois do primeiro boot ela é gerida na tela de administração |
-
-Tudo o mais (administrador, nome da consultoria, chave da IA, limites) é configurado pela interface no primeiro acesso.
+Backend completo e testado (162 testes contra PostgreSQL real). **A interface web ainda é o protótipo da Fase 1**: a
+ligação da interface à API é a próxima etapa.
