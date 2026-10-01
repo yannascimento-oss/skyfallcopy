@@ -36,4 +36,4 @@ jobs:
           if git rev-parse --verify origin/ci-logs >/dev/null 2>&1; then git checkout -q -B ci-logs origin/ci-logs; else git checkout -q --orphan ci-logs; git rm -rfq . ; fi
           mkdir -p resumos && cp /tmp/resumo.txt resumos/$GITHUB_SHA.txt
           git add resumos && git commit -q -m "resumo $GITHUB_SHA"
-          for i in 1 2 3; do git push -q origin ci-logs && break; git pull -q --rebase origin ci-logs; done# Integração contínua do Chat Jr…
+          for i in 1 2 3; do git push -q origin ci-logs && break; git pull -q --rebase origin ci-logs; done
