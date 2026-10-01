@@ -1,0 +1,255 @@
+commit: 410d127fc6e49e302b95b9062d7dca91166d0a8b  branch: fase-2-java  resultado: failure
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.082 s -- in org.empresajr.chatjr.ClientAccountTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.044 s -- in org.empresajr.chatjr.TextChunkerTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 36.55 s -- in org.empresajr.chatjr.PlanAccessTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.SettingsMaskTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in org.empresajr.chatjr.PasswordPolicyTest
+[ERROR] Tests run: 19, Failures: 8, Errors: 0, Skipped: 0, Time elapsed: 29.26 s <<< FAILURE! -- in org.empresajr.chatjr.ProcessingTest
+[ERROR] org.empresajr.chatjr.ProcessingTest.upload_extractsTextAndStoresTheOriginalFile -- Time elapsed: 1.946 s <<< FAILURE!
+[ERROR] org.empresajr.chatjr.ProcessingTest.upload_neverUsesTheClientSuppliedNameAsAPath -- Time elapsed: 1.310 s <<< FAILURE!
+[ERROR] org.empresajr.chatjr.ProcessingTest.remove_deletesFileTextAndSearchChunksButKeepsTheTabContent -- Time elapsed: 1.504 s <<< FAILURE!
+[ERROR] org.empresajr.chatjr.ProcessingTest.process_withAi_sendsTheRightRequestAndStoresTheResult -- Time elapsed: 1.475 s <<< FAILURE!
+[ERROR] org.empresajr.chatjr.ProcessingTest.process_whenAiRejectsTheKey_fallsBackAndNeverLeaksTheKey -- Time elapsed: 1.496 s <<< FAILURE!
+[ERROR] org.empresajr.chatjr.ProcessingTest.process_whenAiHtmlIsOnlyDangerousMarkup_fallsBack -- Time elapsed: 1.472 s <<< FAILURE!
+[ERROR] org.empresajr.chatjr.ProcessingTest.process_withoutAiKey_usesTheExtractiveFallback -- Time elapsed: 1.475 s <<< FAILURE!
+[ERROR] org.empresajr.chatjr.ProcessingTest.process_whenAiAnswersOutsideTheFormat_fallsBack -- Time elapsed: 1.485 s <<< FAILURE!
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.empresajr.chatjr.AiContentParserTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.025 s -- in org.empresajr.chatjr.SessionCookieTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in org.empresajr.chatjr.SecretCipherTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.16 s -- in org.empresajr.chatjr.AuthFlowTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.empresajr.chatjr.DefaultStagesTest
+[ERROR] Failures: 
+[ERROR]   ProcessingTest.process_whenAiAnswersOutsideTheFormat_fallsBack:317 expected: <true> but was: <false>
+[ERROR]   ProcessingTest.process_whenAiHtmlIsOnlyDangerousMarkup_fallsBack:326 expected: <true> but was: <false>
+[ERROR]   ProcessingTest.process_whenAiRejectsTheKey_fallsBackAndNeverLeaksTheKey:301 o plano B gerou o conteúdo ==> expected: <true> but was: <false>
+[ERROR]   ProcessingTest.process_withAi_sendsTheRightRequestAndStoresTheResult:253 o script da IA foi removido ==> expected: <<p>O mercado cresce dez por cento ao ano.</p>> but was: <>
+[ERROR]   ProcessingTest.process_withoutAiKey_usesTheExtractiveFallback:287 expected: <true> but was: <false>
+[ERROR]   ProcessingTest.remove_deletesFileTextAndSearchChunksButKeepsTheTabContent:227 o conteúdo da aba permanece ==> expected: <true> but was: <false>
+[ERROR]   ProcessingTest.upload_extractsTextAndStoresTheOriginalFile:148 expected: <true> but was: <false>
+[ERROR]   ProcessingTest.upload_neverUsesTheClientSuppliedNameAsAPath:156 expected: <true> but was: <false>
+[ERROR] Tests run: 94, Failures: 8, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.2.5:test (default-test) on project chat-jr: There are test failures.
+[ERROR] 
+[ERROR] Please refer to /home/runner/work/skyfallcopy/skyfallcopy/target/surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+--- target/surefire-reports/org.empresajr.chatjr.ProcessingTest.txt
+-------------------------------------------------------------------------------
+Test set: org.empresajr.chatjr.ProcessingTest
+-------------------------------------------------------------------------------
+Tests run: 19, Failures: 8, Errors: 0, Skipped: 0, Time elapsed: 29.26 s <<< FAILURE! -- in org.empresajr.chatjr.ProcessingTest
+org.empresajr.chatjr.ProcessingTest.upload_extractsTextAndStoresTheOriginalFile -- Time elapsed: 1.946 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.empresajr.chatjr.ProcessingTest.upload_extractsTextAndStoresTheOriginalFile(ProcessingTest.java:148)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+org.empresajr.chatjr.ProcessingTest.upload_neverUsesTheClientSuppliedNameAsAPath -- Time elapsed: 1.310 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.empresajr.chatjr.ProcessingTest.upload_neverUsesTheClientSuppliedNameAsAPath(ProcessingTest.java:156)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+org.empresajr.chatjr.ProcessingTest.remove_deletesFileTextAndSearchChunksButKeepsTheTabContent -- Time elapsed: 1.504 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: o conteúdo da aba permanece ==> expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)
+	at org.empresajr.chatjr.ProcessingTest.remove_deletesFileTextAndSearchChunksButKeepsTheTabContent(ProcessingTest.java:227)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+org.empresajr.chatjr.ProcessingTest.process_withAi_sendsTheRightRequestAndStoresTheResult -- Time elapsed: 1.475 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: o script da IA foi removido ==> expected: <<p>O mercado cresce dez por cento ao ano.</p>> but was: <>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1156)
+	at org.empresajr.chatjr.ProcessingTest.process_withAi_sendsTheRightRequestAndStoresTheResult(ProcessingTest.java:253)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+org.empresajr.chatjr.ProcessingTest.process_whenAiRejectsTheKey_fallsBackAndNeverLeaksTheKey -- Time elapsed: 1.496 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: o plano B gerou o conteúdo ==> expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+=== fim do log ===
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.empresajr.chatjr.ProcessingTest.upload_extractsTextAndStoresTheOriginalFile(ProcessingTest.java:148)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] org.empresajr.chatjr.ProcessingTest.upload_neverUsesTheClientSuppliedNameAsAPath -- Time elapsed: 1.310 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.empresajr.chatjr.ProcessingTest.upload_neverUsesTheClientSuppliedNameAsAPath(ProcessingTest.java:156)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] org.empresajr.chatjr.ProcessingTest.remove_deletesFileTextAndSearchChunksButKeepsTheTabContent -- Time elapsed: 1.504 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: o conteúdo da aba permanece ==> expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)
+	at org.empresajr.chatjr.ProcessingTest.remove_deletesFileTextAndSearchChunksButKeepsTheTabContent(ProcessingTest.java:227)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] org.empresajr.chatjr.ProcessingTest.process_withAi_sendsTheRightRequestAndStoresTheResult -- Time elapsed: 1.475 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: o script da IA foi removido ==> expected: <<p>O mercado cresce dez por cento ao ano.</p>> but was: <>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1156)
+	at org.empresajr.chatjr.ProcessingTest.process_withAi_sendsTheRightRequestAndStoresTheResult(ProcessingTest.java:253)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] org.empresajr.chatjr.ProcessingTest.process_whenAiRejectsTheKey_fallsBackAndNeverLeaksTheKey -- Time elapsed: 1.496 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: o plano B gerou o conteúdo ==> expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)
+	at org.empresajr.chatjr.ProcessingTest.process_whenAiRejectsTheKey_fallsBackAndNeverLeaksTheKey(ProcessingTest.java:301)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] org.empresajr.chatjr.ProcessingTest.process_whenAiHtmlIsOnlyDangerousMarkup_fallsBack -- Time elapsed: 1.472 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.empresajr.chatjr.ProcessingTest.process_whenAiHtmlIsOnlyDangerousMarkup_fallsBack(ProcessingTest.java:326)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] org.empresajr.chatjr.ProcessingTest.process_withoutAiKey_usesTheExtractiveFallback -- Time elapsed: 1.475 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)
+	at org.empresajr.chatjr.ProcessingTest.process_withoutAiKey_usesTheExtractiveFallback(ProcessingTest.java:287)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] org.empresajr.chatjr.ProcessingTest.process_whenAiAnswersOutsideTheFormat_fallsBack -- Time elapsed: 1.485 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <true> but was: <false>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)
+	at org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:31)
+	at org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:183)
+	at org.empresajr.chatjr.ProcessingTest.process_whenAiAnswersOutsideTheFormat_fallsBack(ProcessingTest.java:317)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running org.empresajr.chatjr.AiContentParserTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.empresajr.chatjr.AiContentParserTest
+[INFO] Running org.empresajr.chatjr.SessionCookieTest
+2026-10-01T12:41:16.258Z  INFO 2449 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.SessionCookieTest]: SessionCookieTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-01T12:41:16.263Z  INFO 2449 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.SessionCookieTest
+2026-10-01T12:41:16.437Z  INFO 2449 --- [chat-jr] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-01T12:41:16.437Z  INFO 2449 --- [chat-jr] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-01T12:41:16.438Z  INFO 2449 --- [chat-jr] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.025 s -- in org.empresajr.chatjr.SessionCookieTest
+[INFO] Running org.empresajr.chatjr.SecretCipherTest
+2026-10-01T12:41:17.295Z  WARN 2449 --- [chat-jr] [           main] o.empresajr.chatjr.service.SecretCipher  : CHATJR_SECRET não definida: usando uma chave temporária (perfil dev). Segredos gravados agora não poderão ser lidos após reiniciar.
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in org.empresajr.chatjr.SecretCipherTest
+[INFO] Running org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Running org.empresajr.chatjr.AuthFlowTest
+2026-10-01T12:41:17.306Z  INFO 2449 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.AuthFlowTest]: AuthFlowTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-01T12:41:17.309Z  INFO 2449 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.AuthFlowTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.16 s -- in org.empresajr.chatjr.AuthFlowTest
+[INFO] Running org.empresajr.chatjr.DefaultStagesTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.empresajr.chatjr.DefaultStagesTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   ProcessingTest.process_whenAiAnswersOutsideTheFormat_fallsBack:317 expected: <true> but was: <false>
+[ERROR]   ProcessingTest.process_whenAiHtmlIsOnlyDangerousMarkup_fallsBack:326 expected: <true> but was: <false>
+[ERROR]   ProcessingTest.process_whenAiRejectsTheKey_fallsBackAndNeverLeaksTheKey:301 o plano B gerou o conteúdo ==> expected: <true> but was: <false>
+[ERROR]   ProcessingTest.process_withAi_sendsTheRightRequestAndStoresTheResult:253 o script da IA foi removido ==> expected: <<p>O mercado cresce dez por cento ao ano.</p>> but was: <>
+[ERROR]   ProcessingTest.process_withoutAiKey_usesTheExtractiveFallback:287 expected: <true> but was: <false>
+[ERROR]   ProcessingTest.remove_deletesFileTextAndSearchChunksButKeepsTheTabContent:227 o conteúdo da aba permanece ==> expected: <true> but was: <false>
+[ERROR]   ProcessingTest.upload_extractsTextAndStoresTheOriginalFile:148 expected: <true> but was: <false>
+[ERROR]   ProcessingTest.upload_neverUsesTheClientSuppliedNameAsAPath:156 expected: <true> but was: <false>
+[INFO] 
+[ERROR] Tests run: 94, Failures: 8, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:28 min
+[INFO] Finished at: 2026-10-01T12:41:33Z
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.2.5:test (default-test) on project chat-jr: There are test failures.
+[ERROR] 
+[ERROR] Please refer to /home/runner/work/skyfallcopy/skyfallcopy/target/surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
