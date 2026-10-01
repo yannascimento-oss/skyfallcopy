@@ -194,10 +194,10 @@ class AdminSettingsTest extends AbstractIntegrationTest {
         assertTrue(sys.get("ai").get("keyConfigured").asBoolean());
         assertEquals(1, sys.get("ai").get("calls30d").asInt());
         assertEquals(0, sys.get("ai").get("errors30d").asInt());
-        // A chamada de teste usou 200 tokens de entrada e 60 de saída no servidor de mentira: 200*3 + 60*15.
-        assertEquals(200L * 3 + 60L * 15, sys.get("ai").get("estCostMicroUsd30d").asLong());
-        assertEquals(200, sys.get("ai").get("inputTokens30d").asInt());
-        assertEquals(60, sys.get("ai").get("outputTokens30d").asInt());
+        // O servidor de mentira responde, por padrão, com 120 tokens de entrada e 80 de saída: 120*3 + 80*15 = 1560.
+        assertEquals(120L * 3 + 80L * 15, sys.get("ai").get("estCostMicroUsd30d").asLong());
+        assertEquals(120, sys.get("ai").get("inputTokens30d").asInt());
+        assertEquals(80, sys.get("ai").get("outputTokens30d").asInt());
         assertTrue(sys.get("disk").get("freeBytes").asLong() > 0);
         assertEquals("Falha de teste", sys.get("recentErrors").get(0).get("message").asText());
         assertEquals("TEST", sys.get("recentCalls").get(0).get("kind").asText());
