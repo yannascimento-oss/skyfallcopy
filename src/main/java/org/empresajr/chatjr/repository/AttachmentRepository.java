@@ -20,7 +20,7 @@ public interface AttachmentRepository extends JpaRepository<Attachment, Long> {
     @Query("select a from Attachment a where a.tabId = :tabId")
     Optional<Attachment> findForUpdateByTabId(@Param("tabId") Long tabId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("update Attachment a set a.state = :failed, a.errorMessage = :message, a.updatedAt = :now "
             + "where a.state = :processing")
     int failInterrupted(@Param("failed") AttachmentState failed, @Param("processing") AttachmentState processing,

@@ -15,7 +15,7 @@ public interface TabChunkRepository extends JpaRepository<TabChunk, Long> {
 
     long countByTabId(Long tabId);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("delete from TabChunk c where c.tabId = :tabId")
     int deleteAllByTabId(@Param("tabId") Long tabId);
 }

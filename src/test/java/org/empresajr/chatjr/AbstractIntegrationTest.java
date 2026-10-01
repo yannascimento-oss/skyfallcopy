@@ -56,7 +56,7 @@ public abstract class AbstractIntegrationTest {
         // Segredos de teste são gerados na hora: nenhuma credencial fica escrita no código.
         registry.add("chatjr.secret", () -> UUID.randomUUID() + "-" + UUID.randomUUID());
         registry.add("chatjr.ai.base-url", () -> "http://127.0.0.1:" + AI_STUB.getAddress().getPort());
-        registry.add("chatjr.data-dir", () -> System.getProperty("java.io.tmpdir") + "/chatjr-test-" + UUID.randomUUID());
+        registry.add("chatjr.data-dir", () -> DATA_DIR);
     }
 
     // ---------- servidor de mentira da API da Anthropic ----------
@@ -142,6 +142,9 @@ public abstract class AbstractIntegrationTest {
         AI_CALLS.clear();
         AI_REPLY.set(new StubReply(200, aiEnvelope(goodAiContent(), 120, 80), 0));
     }
+
+    /** Pasta de dados dos testes: fixa durante a execução, para o teste e o servidor olharem o mesmo lugar. */
+    static final String DATA_DIR = System.getProperty("java.io.tmpdir") + "/chatjr-test-" + UUID.randomUUID();
 
     protected static final String CSRF_TOKEN = "token-csrf-de-teste";
 
