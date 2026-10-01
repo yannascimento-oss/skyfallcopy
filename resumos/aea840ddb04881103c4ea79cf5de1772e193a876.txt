@@ -1,0 +1,166 @@
+commit: aea840ddb04881103c4ea79cf5de1772e193a876  branch: fase-2-java  resultado: success
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.085 s -- in org.empresajr.chatjr.ClientAccountTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.032 s -- in org.empresajr.chatjr.TextChunkerTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 36.65 s -- in org.empresajr.chatjr.PlanAccessTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.SettingsMaskTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.PasswordPolicyTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 29.03 s -- in org.empresajr.chatjr.ProcessingTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.AiContentParserTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.967 s -- in org.empresajr.chatjr.SessionCookieTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in org.empresajr.chatjr.SecretCipherTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.95 s -- in org.empresajr.chatjr.AuthFlowTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.DefaultStagesTest
+[INFO] Tests run: 94, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+=== fim do log ===
+12:42:50.743 [docker-java-stream-548174466] INFO tc.testcontainers/ryuk:0.7.0 -- Starting to pull image
+12:42:50.793 [docker-java-stream-548174466] INFO tc.testcontainers/ryuk:0.7.0 -- Pulling image layers:  0 pending,  0 downloaded,  0 extracted, (0 bytes/0 bytes)
+12:42:50.905 [docker-java-stream-548174466] INFO tc.testcontainers/ryuk:0.7.0 -- Pulling image layers:  2 pending,  1 downloaded,  0 extracted, (356 KB/? MB)
+12:42:50.938 [docker-java-stream-548174466] INFO tc.testcontainers/ryuk:0.7.0 -- Pulling image layers:  1 pending,  2 downloaded,  0 extracted, (356 KB/? MB)
+12:42:50.945 [docker-java-stream-548174466] INFO tc.testcontainers/ryuk:0.7.0 -- Pulling image layers:  0 pending,  3 downloaded,  0 extracted, (356 KB/6 MB)
+12:42:51.088 [docker-java-stream-548174466] INFO tc.testcontainers/ryuk:0.7.0 -- Pulling image layers:  0 pending,  3 downloaded,  1 extracted, (3 MB/6 MB)
+12:42:51.398 [docker-java-stream-548174466] INFO tc.testcontainers/ryuk:0.7.0 -- Pulling image layers:  0 pending,  3 downloaded,  2 extracted, (3 MB/6 MB)
+12:42:51.448 [docker-java-stream-548174466] INFO tc.testcontainers/ryuk:0.7.0 -- Pulling image layers:  0 pending,  3 downloaded,  3 extracted, (6 MB/6 MB)
+12:42:51.456 [main] INFO tc.testcontainers/ryuk:0.7.0 -- Image testcontainers/ryuk:0.7.0 pull took PT2.014770254S
+12:42:51.491 [main] INFO tc.testcontainers/ryuk:0.7.0 -- Creating container for image: testcontainers/ryuk:0.7.0
+12:42:51.599 [main] INFO tc.testcontainers/ryuk:0.7.0 -- Container testcontainers/ryuk:0.7.0 is starting: 972fe051b53ca76801ebbb4a94dd3d1b72c3f9bb1c1373b64cf655078bdf4005
+12:42:51.985 [main] INFO tc.testcontainers/ryuk:0.7.0 -- Container testcontainers/ryuk:0.7.0 started in PT0.494574204S
+12:42:51.992 [main] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+12:42:51.992 [main] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+12:42:51.993 [main] INFO org.testcontainers.DockerClientFactory -- ✔︎ Docker server version should be at least 1.6.0
+12:42:51.996 [main] INFO tc.postgres:16-alpine -- Pulling docker image: postgres:16-alpine. Please be patient; this may take some time but only needs to be done once.
+12:42:52.253 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Starting to pull image
+12:42:52.255 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  0 pending,  0 downloaded,  0 extracted, (0 bytes/0 bytes)
+12:42:52.388 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers: 10 pending,  1 downloaded,  0 extracted, (172 bytes/? MB)
+12:42:52.390 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  9 pending,  2 downloaded,  0 extracted, (1 KB/? MB)
+12:42:52.405 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  9 pending,  2 downloaded,  1 extracted, (16 KB/? MB)
+12:42:52.426 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  8 pending,  3 downloaded,  1 extracted, (16 KB/? MB)
+12:42:52.435 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  7 pending,  4 downloaded,  1 extracted, (33 KB/? MB)
+12:42:52.462 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  7 pending,  4 downloaded,  2 extracted, (881 KB/? MB)
+12:42:52.473 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  7 pending,  4 downloaded,  3 extracted, (881 KB/? MB)
+12:42:52.480 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  6 pending,  5 downloaded,  3 extracted, (1 MB/? MB)
+12:42:52.484 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  6 pending,  5 downloaded,  4 extracted, (1 MB/? MB)
+12:42:52.485 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  5 pending,  6 downloaded,  4 extracted, (1 MB/? MB)
+12:42:52.535 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  4 pending,  7 downloaded,  4 extracted, (1 MB/? MB)
+12:42:52.539 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  3 pending,  8 downloaded,  4 extracted, (1 MB/? MB)
+12:42:52.587 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  2 pending,  9 downloaded,  4 extracted, (5 MB/? MB)
+12:42:52.981 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  1 pending, 10 downloaded,  4 extracted, (77 MB/? MB)
+12:42:55.449 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  1 pending, 10 downloaded,  5 extracted, (107 MB/? MB)
+12:42:55.462 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  1 pending, 10 downloaded,  6 extracted, (107 MB/? MB)
+12:42:55.470 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  1 pending, 10 downloaded,  7 extracted, (107 MB/? MB)
+12:42:55.480 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  1 pending, 10 downloaded,  8 extracted, (107 MB/? MB)
+12:42:55.488 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  1 pending, 10 downloaded,  9 extracted, (107 MB/? MB)
+12:42:55.497 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pulling image layers:  1 pending, 10 downloaded, 10 extracted, (107 MB/? MB)
+12:42:55.502 [docker-java-stream-1987595545] INFO tc.postgres:16-alpine -- Pull complete. 11 layers, pulled in 3s (downloaded 107 MB at 35 MB/s)
+12:42:55.502 [main] INFO tc.postgres:16-alpine -- Image postgres:16-alpine pull took PT3.506342627S
+12:42:55.506 [main] INFO tc.postgres:16-alpine -- Creating container for image: postgres:16-alpine
+12:42:55.522 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine is starting: e2a0dcbd1068c0c778dd9e4eaa79cd2d902b5f478d432992e32583b79140416d
+12:42:56.970 [main] INFO tc.postgres:16-alpine -- Container postgres:16-alpine started in PT1.464269543S
+12:42:56.971 [main] INFO tc.postgres:16-alpine -- Container is started (JDBC URL: jdbc:postgresql://localhost:32769/test?loggerLevel=OFF)
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.5)
+
+2026-10-01T12:42:57.562Z  INFO 2356 --- [chat-jr] [           main] org.empresajr.chatjr.PlanAccessTest      : Starting PlanAccessTest using Java 21.0.12.1 with PID 2356 (started by runner in /home/runner/work/skyfallcopy/skyfallcopy)
+2026-10-01T12:42:57.565Z  INFO 2356 --- [chat-jr] [           main] org.empresajr.chatjr.PlanAccessTest      : No active profile set, falling back to 1 default profile: "default"
+2026-10-01T12:42:58.857Z  INFO 2356 --- [chat-jr] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-01T12:42:58.936Z  INFO 2356 --- [chat-jr] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 71 ms. Found 10 JPA repository interfaces.
+2026-10-01T12:42:59.941Z  INFO 2356 --- [chat-jr] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-10-01T12:42:59.974Z  INFO 2356 --- [chat-jr] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-01T12:42:59.975Z  INFO 2356 --- [chat-jr] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-10-01T12:43:00.041Z  INFO 2356 --- [chat-jr] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-10-01T12:43:00.043Z  INFO 2356 --- [chat-jr] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2435 ms
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+2026-10-01T12:43:00.606Z  INFO 2356 --- [chat-jr] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-01T12:43:00.916Z  INFO 2356 --- [chat-jr] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@44261f25
+2026-10-01T12:43:00.918Z  INFO 2356 --- [chat-jr] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-01T12:43:00.966Z  INFO 2356 --- [chat-jr] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:32769/test (PostgreSQL 16.15)
+2026-10-01T12:43:01.008Z  INFO 2356 --- [chat-jr] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-10-01T12:43:01.012Z  INFO 2356 --- [chat-jr] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.020s)
+2026-10-01T12:43:01.029Z  INFO 2356 --- [chat-jr] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-10-01T12:43:01.091Z  INFO 2356 --- [chat-jr] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-10-01T12:43:01.130Z  INFO 2356 --- [chat-jr] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - schema"
+2026-10-01T12:43:01.240Z  INFO 2356 --- [chat-jr] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v1 (execution time 00:00.088s)
+2026-10-01T12:43:01.364Z  INFO 2356 --- [chat-jr] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-10-01T12:43:01.439Z  INFO 2356 --- [chat-jr] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-10-01T12:43:01.477Z  INFO 2356 --- [chat-jr] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-10-01T12:43:01.858Z  INFO 2356 --- [chat-jr] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-01T12:43:03.538Z  INFO 2356 --- [chat-jr] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-01T12:43:03.541Z  INFO 2356 --- [chat-jr] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-01T12:43:04.528Z  INFO 2356 --- [chat-jr] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-01T12:43:06.026Z  INFO 2356 --- [chat-jr] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsService
+2026-10-01T12:43:06.138Z  INFO 2356 --- [chat-jr] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-10-01T12:43:06.466Z  INFO 2356 --- [chat-jr] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-10-01T12:43:06.993Z  INFO 2356 --- [chat-jr] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring TestDispatcherServlet ''
+2026-10-01T12:43:06.993Z  INFO 2356 --- [chat-jr] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-01T12:43:06.994Z  INFO 2356 --- [chat-jr] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-10-01T12:43:07.107Z  INFO 2356 --- [chat-jr] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 45993 (http) with context path '/'
+2026-10-01T12:43:07.127Z  INFO 2356 --- [chat-jr] [           main] org.empresajr.chatjr.PlanAccessTest      : Started PlanAccessTest in 10.086 seconds (process running for 20.735)
+WARNING: A Java agent has been loaded dynamically (/home/runner/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.19/byte-buddy-agent-1.14.19.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 36.65 s -- in org.empresajr.chatjr.PlanAccessTest
+[INFO] Running org.empresajr.chatjr.SettingsMaskTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.SettingsMaskTest
+[INFO] Running org.empresajr.chatjr.PasswordPolicyTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.PasswordPolicyTest
+[INFO] Running org.empresajr.chatjr.ProcessingTest
+2026-10-01T12:43:24.360Z  INFO 2356 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.ProcessingTest]: ProcessingTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-01T12:43:24.363Z  INFO 2356 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.ProcessingTest
+2026-10-01T12:43:26.110Z  WARN 2356 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : 53 new fonts found, font cache will be re-built
+2026-10-01T12:43:26.110Z  WARN 2356 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : Building on-disk font cache, this may take a while
+2026-10-01T12:43:26.466Z  WARN 2356 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : Could not load font file '/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf': 'loca' table is mandatory
+2026-10-01T12:43:26.469Z  WARN 2356 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : Finished building on-disk font cache, found 53 fonts
+2026-10-01T12:43:29.237Z  WARN 2356 --- [chat-jr] [           main] o.e.chatjr.service.ProcessingService     : 1 processamento(s) interrompido(s) foram marcados como falhos.
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 29.03 s -- in org.empresajr.chatjr.ProcessingTest
+[INFO] Running org.empresajr.chatjr.AiContentParserTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.AiContentParserTest
+[INFO] Running org.empresajr.chatjr.SessionCookieTest
+2026-10-01T12:43:53.395Z  INFO 2356 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.SessionCookieTest]: SessionCookieTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-01T12:43:53.397Z  INFO 2356 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.SessionCookieTest
+2026-10-01T12:43:53.529Z  INFO 2356 --- [chat-jr] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-01T12:43:53.529Z  INFO 2356 --- [chat-jr] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-01T12:43:53.530Z  INFO 2356 --- [chat-jr] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.967 s -- in org.empresajr.chatjr.SessionCookieTest
+[INFO] Running org.empresajr.chatjr.SecretCipherTest
+2026-10-01T12:43:54.379Z  WARN 2356 --- [chat-jr] [           main] o.empresajr.chatjr.service.SecretCipher  : CHATJR_SECRET não definida: usando uma chave temporária (perfil dev). Segredos gravados agora não poderão ser lidos após reiniciar.
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in org.empresajr.chatjr.SecretCipherTest
+[INFO] Running org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Running org.empresajr.chatjr.AuthFlowTest
+2026-10-01T12:43:54.391Z  INFO 2356 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.AuthFlowTest]: AuthFlowTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-01T12:43:54.393Z  INFO 2356 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.AuthFlowTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.95 s -- in org.empresajr.chatjr.AuthFlowTest
+[INFO] Running org.empresajr.chatjr.DefaultStagesTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.DefaultStagesTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 94, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ chat-jr ---
+[INFO] Building jar: /home/runner/work/skyfallcopy/skyfallcopy/target/chat-jr-1.0.0.jar
+[INFO] 
+[INFO] --- spring-boot:3.3.5:repackage (repackage) @ chat-jr ---
+[INFO] Replacing main artifact /home/runner/work/skyfallcopy/skyfallcopy/target/chat-jr-1.0.0.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to /home/runner/work/skyfallcopy/skyfallcopy/target/chat-jr-1.0.0.jar.original
+[INFO] 
+[INFO] --- jacoco:0.8.12:report (report) @ chat-jr ---
+[INFO] Loading execution data file /home/runner/work/skyfallcopy/skyfallcopy/target/jacoco.exec
+[INFO] Analyzed bundle 'Chat Jr' with 78 classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:29 min
+[INFO] Finished at: 2026-10-01T12:44:11Z
+[INFO] ------------------------------------------------------------------------
