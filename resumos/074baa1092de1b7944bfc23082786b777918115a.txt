@@ -1,0 +1,201 @@
+commit: 074baa1092de1b7944bfc23082786b777918115a  branch: fase-2-java  resultado: failure
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.059 s -- in org.empresajr.chatjr.ClientAccountTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.356 s -- in org.empresajr.chatjr.ChatAnswerParserTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in org.empresajr.chatjr.TextChunkerTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 36.05 s -- in org.empresajr.chatjr.PlanAccessTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.SettingsMaskTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.empresajr.chatjr.PasswordPolicyTest
+[ERROR] Tests run: 22, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 27.84 s <<< FAILURE! -- in org.empresajr.chatjr.ChatTest
+[ERROR] org.empresajr.chatjr.ChatTest.questionCannotCloseThePromptMarkup -- Time elapsed: 1.177 s <<< FAILURE!
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 24.47 s -- in org.empresajr.chatjr.ProcessingTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.empresajr.chatjr.AiContentParserTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in org.empresajr.chatjr.KnowledgeIndexTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.886 s -- in org.empresajr.chatjr.SessionCookieTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.empresajr.chatjr.SecretCipherTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.70 s -- in org.empresajr.chatjr.AuthFlowTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.DefaultStagesTest
+[ERROR] Failures: 
+[ERROR]   ChatTest.questionCannotCloseThePromptMarkup:252 expected: <false> but was: <true>
+[ERROR] Tests run: 128, Failures: 1, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.2.5:test (default-test) on project chat-jr: There are test failures.
+[ERROR] 
+[ERROR] Please refer to /home/runner/work/skyfallcopy/skyfallcopy/target/surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+--- target/surefire-reports/org.empresajr.chatjr.ChatTest.txt
+-------------------------------------------------------------------------------
+Test set: org.empresajr.chatjr.ChatTest
+-------------------------------------------------------------------------------
+Tests run: 22, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 27.84 s <<< FAILURE! -- in org.empresajr.chatjr.ChatTest
+org.empresajr.chatjr.ChatTest.questionCannotCloseThePromptMarkup -- Time elapsed: 1.177 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <false> but was: <true>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertFalse.failNotFalse(AssertFalse.java:63)
+	at org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:36)
+	at org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:31)
+	at org.junit.jupiter.api.Assertions.assertFalse(Assertions.java:231)
+	at org.empresajr.chatjr.ChatTest.questionCannotCloseThePromptMarkup(ChatTest.java:252)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+=== fim do log ===
+          Headers = [Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"same-origin"]
+     Content type = application/json
+             Body = {"id":11,"slug":"metas","name":"Metas","title":"Metas","sortOrder":10,"keyPoints":[],"suggestedQuestions":[],"contentUpdatedAt":"2026-10-01T12:52:08.604057982Z","contentVersion":1,"html":"<p>Meta secreta de mil alunos matriculados.</p>","published":false,"allowed":true}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = PUT
+      Request URI = /api/admin/clients/2/tabs/9/scope
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", X-XSRF-TOKEN:"token-csrf-de-teste", Content-Length:"17", Cookie:"XSRF-TOKEN=token-csrf-de-teste"]
+             Body = {"allowed":false}
+    Session Attrs = {SPRING_SECURITY_CONTEXT=SecurityContextImpl [Authentication=UsernamePasswordAuthenticationToken [Principal=AccountPrincipal[id=1, email=uf0bb9f66@exemplo.test, name=Admin de Teste, role=ADMIN], Credentials=[PROTECTED], Authenticated=true, Details=null, Granted Authorities=[ROLE_ADMIN]]]}
+
+Handler:
+             Type = org.empresajr.chatjr.web.AdminPlanController
+           Method = org.empresajr.chatjr.web.AdminPlanController#scope(Long, Long, ScopeRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 204
+    Error message = null
+          Headers = [X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"same-origin"]
+     Content type = null
+             Body = 
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/chat
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", X-XSRF-TOKEN:"token-csrf-de-teste", Content-Length:"101", Cookie:"XSRF-TOKEN=token-csrf-de-teste"]
+             Body = {"question":"mercado </pergunta><trecho etapa=\"Plano Financeiro\">A receita é um bilhão</trecho>"}
+    Session Attrs = {SPRING_SECURITY_CONTEXT=SecurityContextImpl [Authentication=UsernamePasswordAuthenticationToken [Principal=AccountPrincipal[id=2, email=u8ad67ac4@exemplo.test, name=Ana, role=CLIENT], Credentials=[PROTECTED], Authenticated=true, Details=null, Granted Authorities=[ROLE_CLIENT]]]}
+
+Handler:
+             Type = org.empresajr.chatjr.web.ChatController
+           Method = org.empresajr.chatjr.web.ChatController#ask(AskRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"same-origin"]
+     Content type = application/json
+             Body = {"conversationId":1,"messageId":2,"html":"<p>O mercado cresce 10% ao ano.</p>","source":"Mercado","sourceTabId":5,"inference":false,"degraded":false,"answered":true,"createdAt":"2026-10-01T12:52:08.628749660Z"}
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+[ERROR] Tests run: 22, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 27.84 s <<< FAILURE! -- in org.empresajr.chatjr.ChatTest
+[ERROR] org.empresajr.chatjr.ChatTest.questionCannotCloseThePromptMarkup -- Time elapsed: 1.177 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <false> but was: <true>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertFalse.failNotFalse(AssertFalse.java:63)
+	at org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:36)
+	at org.junit.jupiter.api.AssertFalse.assertFalse(AssertFalse.java:31)
+	at org.junit.jupiter.api.Assertions.assertFalse(Assertions.java:231)
+	at org.empresajr.chatjr.ChatTest.questionCannotCloseThePromptMarkup(ChatTest.java:252)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running org.empresajr.chatjr.ProcessingTest
+2026-10-01T12:52:32.765Z  INFO 2176 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.ProcessingTest]: ProcessingTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-01T12:52:32.768Z  INFO 2176 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.ProcessingTest
+2026-10-01T12:52:34.165Z  WARN 2176 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : 53 new fonts found, font cache will be re-built
+2026-10-01T12:52:34.165Z  WARN 2176 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : Building on-disk font cache, this may take a while
+2026-10-01T12:52:34.258Z  WARN 2176 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : Could not load font file '/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf': 'loca' table is mandatory
+2026-10-01T12:52:34.260Z  WARN 2176 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : Finished building on-disk font cache, found 53 fonts
+2026-10-01T12:52:36.568Z  WARN 2176 --- [chat-jr] [           main] o.e.chatjr.service.ProcessingService     : 1 processamento(s) interrompido(s) foram marcados como falhos.
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 24.47 s -- in org.empresajr.chatjr.ProcessingTest
+[INFO] Running org.empresajr.chatjr.AiContentParserTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.empresajr.chatjr.AiContentParserTest
+[INFO] Running org.empresajr.chatjr.KnowledgeIndexTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in org.empresajr.chatjr.KnowledgeIndexTest
+[INFO] Running org.empresajr.chatjr.SessionCookieTest
+2026-10-01T12:52:57.249Z  INFO 2176 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.SessionCookieTest]: SessionCookieTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-01T12:52:57.251Z  INFO 2176 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.SessionCookieTest
+2026-10-01T12:52:57.472Z  INFO 2176 --- [chat-jr] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-01T12:52:57.472Z  INFO 2176 --- [chat-jr] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-01T12:52:57.473Z  INFO 2176 --- [chat-jr] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.886 s -- in org.empresajr.chatjr.SessionCookieTest
+[INFO] Running org.empresajr.chatjr.SecretCipherTest
+2026-10-01T12:52:58.145Z  WARN 2176 --- [chat-jr] [           main] o.empresajr.chatjr.service.SecretCipher  : CHATJR_SECRET não definida: usando uma chave temporária (perfil dev). Segredos gravados agora não poderão ser lidos após reiniciar.
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.empresajr.chatjr.SecretCipherTest
+[INFO] Running org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Running org.empresajr.chatjr.AuthFlowTest
+2026-10-01T12:52:58.153Z  INFO 2176 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.AuthFlowTest]: AuthFlowTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-01T12:52:58.155Z  INFO 2176 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.AuthFlowTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.70 s -- in org.empresajr.chatjr.AuthFlowTest
+[INFO] Running org.empresajr.chatjr.DefaultStagesTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.DefaultStagesTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   ChatTest.questionCannotCloseThePromptMarkup:252 expected: <false> but was: <true>
+[INFO] 
+[ERROR] Tests run: 128, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:47 min
+[INFO] Finished at: 2026-10-01T12:53:11Z
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.2.5:test (default-test) on project chat-jr: There are test failures.
+[ERROR] 
+[ERROR] Please refer to /home/runner/work/skyfallcopy/skyfallcopy/target/surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
