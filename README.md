@@ -47,6 +47,16 @@ git remote add origin https://github.com/SEU-USUARIO/SEU-REPO.git
 git push -u origin main
 ```
 
+## Perfis de acesso (versão estática)
+
+- **Cliente**: lê o plano, consulta o chat e vê os indicadores de uso. Não vê anexos, processamento, configurações nem a lista de clientes.
+- **Administrador (consultoria)**: cadastra clientes, abre o painel de cada um, anexa material, processa com IA e acessa Configurações.
+- Não existe tela pública de "Criar conta": o acesso é criado pela consultoria em **Clientes & Planos → Novo cliente**.
+
+Contas de demonstração: `consultoria@empresajr.org` (administrador) e os e-mails dos clientes listados em Clientes & Planos.
+
+> **Atenção: isto não é segurança de verdade.** Esta versão não tem servidor. O perfil vem da conta, mas a senha **não é verificada** e todos os dados ficam no `localStorage` do navegador, então qualquer pessoa com o DevTools consegue ler ou alterar tudo. Autenticação com senha cifrada, autorização por perfil e isolamento entre clientes só existem na versão com backend (Java/Spring Boot). Não coloque dados reais de clientes nesta versão.
+
 ## Configuração da IA
 
 - Abra **Configurações → Inteligência artificial** dentro do app.

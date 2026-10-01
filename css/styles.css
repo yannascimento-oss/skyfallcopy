@@ -546,3 +546,31 @@ table.admin-table tbody tr:hover{background:var(--jr-blue-tint);}
 .ai-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;}
 .ai-badge.on{background:var(--teal-tint);color:var(--teal);}
 .ai-badge.off{background:var(--amber-tint);color:var(--amber);}
+
+/* ============================================================
+   Separação cliente x administrador — componentes novos
+   ============================================================ */
+.form-error{background:#FBE9E9;color:var(--red);border:1px solid #F0C4C4;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.5;margin-bottom:14px;}
+html[data-theme="dark"] .form-error{background:#3A1517;border-color:#6B2A2D;color:#FF9C9E;}
+
+.toasts{position:fixed;right:20px;bottom:20px;z-index:300;display:flex;flex-direction:column;gap:8px;max-width:min(380px,calc(100vw - 40px));}
+.toast{background:var(--ink);color:#fff;font-size:13.5px;line-height:1.45;padding:11px 14px;border-radius:8px;border-left:4px solid var(--jr-blue);opacity:1;transition:opacity .25s;}
+.toast.ok{border-left-color:var(--teal);}
+.toast.error{border-left-color:var(--red);}
+.toast.out{opacity:0;}
+html[data-theme="dark"] .toast{background:#EEF0FA;color:#101223;}
+
+.block{margin-bottom:34px;}
+.sec-title{font-size:15px;font-weight:700;margin:0 0 4px;letter-spacing:-.005em;}
+.sec-sub{font-size:13.5px;color:var(--muted);margin:0 0 14px;}
+.kv-list{margin:0;border-top:1px solid var(--line);}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:13px 0;border-bottom:1px solid var(--line);}
+.kv dt{font-size:14px;color:var(--muted);}
+.kv dd{margin:0;font-size:15px;font-weight:700;text-align:right;}
+.link-list{border-top:1px solid var(--line);}
+.link-row{display:flex;justify-content:space-between;align-items:center;gap:16px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:15px 4px;cursor:pointer;color:var(--ink);font-family:inherit;}
+.link-row b{display:block;font-size:14.5px;font-weight:700;margin-bottom:2px;}
+.link-row span span{display:block;font-size:13px;color:var(--muted);}
+.link-row .arrow{font-size:20px;color:var(--muted-2);}
+.link-row:hover{background:var(--line-soft);}
+.empty-note{color:var(--muted);font-size:14.5px;line-height:1.6;margin:14px 0 0;}

@@ -35,7 +35,7 @@
     <div class="hero-grid">
       <div class="hero-copy">
         <h1>Seu Plano de Negócios deixa de ser um PDF esquecido e passa a <em>responder</em>.</h1>
-        <p>A consultoria da Empresa JR entrega seu Plano de Negócios dentro do Chat Jr: você anexa cada parte do plano, a IA processa o conteúdo e você pergunta o que quiser, em linguagem natural, com a fonte de cada resposta sempre à vista.</p>
+        <p>A consultoria da Empresa JR entrega seu Plano de Negócios dentro do Chat Jr: você lê cada etapa do plano e pergunta o que quiser, em linguagem natural, com a fonte de cada resposta sempre à vista.</p>
         <div class="hero-stats">
           <div class="hero-stat"><b>+36 anos</b><span>de mercado</span></div>
           <div class="hero-stat"><b>+1.500</b><span>projetos executados</span></div>
@@ -44,43 +44,25 @@
       </div>
 
       <div class="login-card" id="login-card">
-        <div class="auth-tabs">
-          <button class="auth-tab active" id="tab-login" onclick="setAuthTab('login')">Entrar</button>
-          <button class="auth-tab" id="tab-signup" onclick="setAuthTab('signup')">Criar conta</button>
-        </div>
-
         <div id="auth-login">
           <h2>Acessar meu plano</h2>
-          <p class="sub">Entre com o e-mail que você cadastrou com a consultoria.</p>
-          <div class="field"><label for="login-email">E-mail</label><input id="login-email" type="email" placeholder="voce@empresa.com" value="ana.silva@nortefit.com.br"></div>
+          <p class="sub">Entre com o e-mail de acesso informado pela consultoria.</p>
+          <div id="login-error" class="form-error hidden" role="alert"></div>
+          <div class="field"><label for="login-email">E-mail de acesso</label><input id="login-email" type="email" autocomplete="username" placeholder="voce@empresa.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
           <div class="field">
             <div class="field-row"><label for="login-pass">Senha</label><button class="link-btn" onclick="setAuthTab('forgot')">Esqueci minha senha</button></div>
-            <input id="login-pass" type="password" placeholder="Sua senha" value="••••••••">
+            <input id="login-pass" type="password" autocomplete="current-password" placeholder="Sua senha" onkeydown="if(event.key==='Enter')doLogin()">
           </div>
           <button class="btn-lg blue btn" onclick="doLogin()">Entrar no Chat Jr</button>
-          <div class="auth-switch">Ainda não tem acesso? <button class="link-btn" onclick="setAuthTab('signup')">Criar conta</button></div>
-        </div>
-
-        <div id="auth-signup" class="hidden">
-          <h2>Criar conta</h2>
-          <p class="sub">Cadastre-se para consultar o Plano de Negócios da sua empresa.</p>
-          <div class="field"><label>Nome completo</label><input type="text" placeholder="Ana Silva"></div>
-          <div class="field"><label>Empresa</label><input type="text" placeholder="Norte Fit Studios"></div>
-          <div class="field"><label>E-mail</label><input type="email" placeholder="voce@empresa.com"></div>
-          <div class="field"><label>Senha</label><input type="password" placeholder="Crie uma senha"></div>
-          <button class="btn-lg blue btn" onclick="doLogin()">Criar conta e entrar</button>
-          <div class="auth-switch">Já tem conta? <button class="link-btn" onclick="setAuthTab('login')">Entrar</button></div>
         </div>
 
         <div id="auth-forgot" class="hidden">
           <h2>Recuperar senha</h2>
-          <p class="sub">Enviamos um link de redefinição para o seu e-mail cadastrado.</p>
-          <div class="field"><label>E-mail</label><input type="email" placeholder="voce@empresa.com"></div>
-          <button class="btn-lg blue btn" onclick="sendReset()">Enviar link</button>
+          <p class="sub">O acesso ao Chat Jr é criado pela consultoria. Para redefinir sua senha, fale com a equipe da Empresa JR pelo e-mail contato@empresajr.org e informe o seu e-mail de acesso.</p>
           <div class="auth-switch"><button class="link-btn" onclick="setAuthTab('login')">Voltar para o login</button></div>
         </div>
 
-        <p class="auth-note">Cada conta acessa apenas os dados da própria empresa. Nenhuma informação é compartilhada entre clientes da Empresa JR.</p>
+        <p class="auth-note">Não tem acesso? Fale com a consultoria da Empresa JR. Os acessos são criados pela equipe.</p>
       </div>
     </div>
   </section>
@@ -92,27 +74,27 @@
 
   <section class="jr-how" id="como-funciona">
     <h2>Como o Chat Jr funciona</h2>
-    <p class="lead">Seu plano é organizado em abas. Cada aba recebe o material que a sustenta, a IA transforma esse material em texto consultável e o chat responde a partir dele.</p>
+    <p class="lead">Seu plano é organizado em etapas. A consultoria prepara cada uma delas, e o chat responde a partir desse conteúdo.</p>
     <div class="how-grid">
       <article class="how-card">
         <div class="step">Etapa 1</div>
-        <h3>Anexe o material de cada aba</h3>
-        <p>Toda aba do plano — nova ou existente — tem seu próprio campo de PDF e de link para slide, doc ou planilha.</p>
+        <h3>A consultoria prepara seu plano</h3>
+        <p>A equipe da Empresa JR organiza o material do seu Plano de Negócios, etapa por etapa.</p>
       </article>
       <article class="how-card">
         <div class="step">Etapa 2</div>
-        <h3>Processe com IA</h3>
-        <p>Um clique em "Processar com IA" lê o material anexado e escreve o conteúdo da aba, pronto para leitura e consulta.</p>
+        <h3>Leia o plano</h3>
+        <p>Cada etapa aparece como um documento: o que é, qual o objetivo, o conteúdo e os principais pontos.</p>
       </article>
       <article class="how-card">
         <div class="step">Etapa 3</div>
         <h3>Pergunte no chat</h3>
-        <p>O chat responde usando somente o que está no seu plano e indica em qual aba a informação foi encontrada.</p>
+        <p>O chat responde usando somente o que está no seu plano e indica em qual seção a informação foi encontrada.</p>
       </article>
       <article class="how-card">
         <div class="step">Etapa 4</div>
-        <h3>Ajuste quando quiser</h3>
-        <p>Você edita o texto das abas a qualquer momento, e a consultoria acompanha e revisa junto com você.</p>
+        <h3>Acompanhe o que mais importa</h3>
+        <p>Os indicadores mostram o que você mais consulta e onde o plano ainda pode ficar mais claro.</p>
       </article>
     </div>
   </section>
@@ -147,31 +129,27 @@
       </button>
       <button class="nav-item" data-view="chat" onclick="go('chat')">
         <svg class="ic" viewBox="0 0 20 20" fill="none"><path d="M3 5.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H5a2 2 0 0 1-2-2v-6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-        Consultar Plano
+        Consultar plano
       </button>
       <button class="nav-item" data-view="plano" onclick="go('plano')">
         <svg class="ic" viewBox="0 0 20 20" fill="none"><path d="M6 2.5h6l3 3V17a.5.5 0 0 1-.5.5h-9A.5.5 0 0 1 5 17V3a.5.5 0 0 1 .5-.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 9h5M8 12h5M8 6h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        Plano de Negócios
+        Plano de negócios
       </button>
       <button class="nav-item" data-view="indicadores" onclick="go('indicadores')">
         <svg class="ic" viewBox="0 0 20 20" fill="none"><path d="M4 16V9M10 16V4M16 16v-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         Indicadores
-      </button>
-      <button class="nav-item" data-view="config" onclick="go('config')">
-        <svg class="ic" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 2.7v1.8M10 15.5v1.8M17.3 10h-1.8M4.5 10H2.7M15.1 4.9l-1.3 1.3M6.2 13.8l-1.3 1.3M15.1 15.1l-1.3-1.3M6.2 6.2 4.9 4.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-        Configurações
       </button>
       <div class="nav-group-label admin-only hidden">Administração</div>
       <button class="nav-item admin-only hidden" data-view="admin" onclick="go('admin')">
         <svg class="ic" viewBox="0 0 20 20" fill="none"><rect x="2.5" y="4" width="15" height="12" rx="1.8" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 8h15" stroke="currentColor" stroke-width="1.6"/></svg>
         Clientes &amp; Planos
       </button>
+      <button class="nav-item admin-only hidden" data-view="config" onclick="go('config')">
+        <svg class="ic" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 2.7v1.8M10 15.5v1.8M17.3 10h-1.8M4.5 10H2.7M15.1 4.9l-1.3 1.3M6.2 13.8l-1.3 1.3M15.1 15.1l-1.3-1.3M6.2 6.2 4.9 4.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Configurações
+      </button>
     </nav>
     <div class="sidebar-bottom">
-      <div class="role-toggle">
-        <span>Modo administrador</span>
-        <button class="switch" id="admin-switch" onclick="toggleAdmin()" aria-label="Alternar modo administrador"></button>
-      </div>
       <div class="user-row">
         <div class="avatar" id="side-avatar">AS</div>
         <div class="who">
@@ -195,12 +173,11 @@
         </div>
       </div>
       <div class="topbar-right">
-        <span class="ai-badge off" id="ai-badge" title="Estado da conexão com a IA">IA</span>
+        <span class="ai-badge off admin-only hidden" id="ai-badge" title="Estado da conexão com a IA">IA</span>
         <button class="icon-btn" id="theme-toggle-btn" title="Alternar modo claro e escuro" onclick="toggleTheme()">
           <svg id="theme-icon-sun" width="19" height="19" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 2.5v2M10 15.5v2M17.5 10h-2M4.5 10h-2M15.3 4.7l-1.4 1.4M6.1 13.9l-1.4 1.4M15.3 15.3l-1.4-1.4M6.1 6.1 4.7 4.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           <svg id="theme-icon-moon" class="hidden" width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M16.5 12.3A6.8 6.8 0 0 1 7.7 3.5a7 7 0 1 0 8.8 8.8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
         </button>
-        <button class="icon-btn" title="Notificações"><svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M5 8a5 5 0 0 1 10 0c0 3.2 1 4.2 1 4.5H4c0-.3 1-1.3 1-4.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8.3 15a1.7 1.7 0 0 0 3.4 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
         <div class="avatar" id="top-avatar" style="width:32px;height:32px;font-size:12px;">AS</div>
       </div>
     </div>
@@ -220,16 +197,18 @@
      ============================================================ -->
 <template id="tpl-dashboard">
   <div class="section-head">
-    <h1 id="dash-hello">Olá 👋</h1>
-    <p id="dash-sub">Aqui está o resumo do Plano de Negócios e o que você pode consultar hoje.</p>
+    <h1 id="dash-hello">Olá</h1>
+    <p id="dash-sub">Seu Plano de Negócios está disponível para consulta.</p>
   </div>
-  <div class="stat-grid" id="dash-stats"></div>
-  <div class="card progress-card" id="dash-progress"></div>
-  <div class="card suggest-panel">
-    <h3>O que você gostaria de saber?</h3>
-    <p class="sub">Toque em uma pergunta para abrir o chat com ela preenchida.</p>
-    <div class="suggest-grid" id="dash-suggest"></div>
-  </div>
+  <section class="block" aria-labelledby="ov-title">
+    <h2 class="sec-title" id="ov-title">Visão geral</h2>
+    <p class="sec-sub">Consulte as principais informações do seu Plano de Negócios.</p>
+    <dl class="kv-list" id="dash-overview"></dl>
+  </section>
+  <section class="block" aria-labelledby="ex-title">
+    <h2 class="sec-title" id="ex-title">Explore seu plano</h2>
+    <div class="link-list" id="dash-explore"></div>
+  </section>
 </template>
 
 <template id="tpl-chat">
@@ -244,8 +223,8 @@
     </div>
     <div class="chat-col">
       <div class="chat-head">
-        <h2>Assistente do Plano de Negócios</h2>
-        <p id="chat-head-sub">Responde a partir das abas processadas do seu plano.</p>
+        <h2>Consultar plano</h2>
+        <p id="chat-head-sub">Faça uma pergunta sobre seu Plano de Negócios.</p>
       </div>
       <div class="chat-thread scrollbar-thin" id="chat-thread"></div>
       <div class="chat-input-wrap">
@@ -263,8 +242,8 @@
 
 <template id="tpl-plano">
   <div class="section-head">
-    <h1>Plano de Negócios</h1>
-    <p>Cada aba tem seu próprio anexo. Envie o PDF ou o link daquela parte do plano, clique em "Processar com IA" e o texto da aba é escrito a partir do material enviado.</p>
+    <h1>Plano de negócios</h1>
+    <p id="plano-intro">Leia cada etapa do seu plano.</p>
   </div>
   <div class="card attach-panel" id="attach-panel"></div>
   <div class="plan-search">
@@ -339,7 +318,7 @@
     <div class="card settings-card">
       <h3>Empresa</h3>
       <p class="d">Dados da empresa vinculada à conta.</p>
-      <div class="field"><label>Nome da empresa</label><input type="text" id="cfg-company" value=""></div>
+      <div class="field"><label for="nc-company">Nome da empresa</label><input type="text" id="cfg-company" value=""></div>
       <div class="field"><label>Segmento</label><input type="text" id="cfg-segment" value=""></div>
       <button class="btn blue" onclick="saveCompany()">Salvar dados da empresa</button>
     </div>
@@ -397,11 +376,11 @@
 <div class="modal-overlay hidden" id="new-client-modal">
   <div class="modal">
     <h3>Novo cliente</h3>
-    <p class="d">Cadastre o cliente e a empresa. O plano nasce com as abas padrão, prontas para receber os anexos.</p>
-    <div class="field"><label>Nome do responsável</label><input type="text" id="nc-name" placeholder="Ex: Rafael Matos"></div>
-    <div class="field"><label>E-mail</label><input type="email" id="nc-email" placeholder="rafael@empresa.com"></div>
+    <p class="d">Crie o acesso do cliente. O plano nasce com as etapas padrão, prontas para receber o material.</p>
+    <div class="field"><label for="nc-name">Nome do responsável</label><input type="text" id="nc-name" placeholder="Ex: Rafael Matos"></div>
+    <div class="field"><label for="nc-email">E-mail de acesso</label><input type="email" id="nc-email" placeholder="rafael@empresa.com"></div>
     <div class="field"><label>Nome da empresa</label><input type="text" id="nc-company" placeholder="Ex: Cafeteria Grão &amp; Cia"></div>
-    <div class="field"><label>Segmento</label><input type="text" id="nc-segment" placeholder="Ex: Alimentação"></div>
+    <div class="field"><label for="nc-segment">Segmento</label><input type="text" id="nc-segment" placeholder="Ex: Alimentação"></div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('new-client-modal')">Cancelar</button>
       <button class="btn blue" onclick="createClient()">Cadastrar cliente</button>
@@ -441,6 +420,8 @@
     </div>
   </div>
 </div>
+
+<div id="toasts" class="toasts" role="status" aria-live="polite"></div>
 
 <!-- Scripts da aplicação -->
 <script src="js/app.js"></script>

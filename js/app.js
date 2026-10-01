@@ -182,16 +182,32 @@ let clients = [
 
 // sessionClientId = usuário logado. activeClientId = painel em uso
 // (quando o admin abre o painel de outro cliente, difere de sessionClientId).
-let sessionClientId = 1;
-let activeClientId  = 1;
-let adminEditing    = false;
+/**
+ * Contas da consultoria (administradores). Ficam separadas dos clientes:
+ * um administrador não tem plano próprio, ele abre o painel dos clientes.
+ *
+ * ATENÇÃO — versão estática: não existe servidor, então o perfil vem da
+ * conta cadastrada, mas NÃO há verificação real de senha nem proteção contra
+ * quem abrir o DevTools. Autenticação e autorização de verdade exigem o
+ * backend (versão Java). Veja o README.
+ */
+const staff = [
+  {id:'adm-1', role:'admin', name:'Consultoria Empresa JR', email:'consultoria@empresajr.org', lastLogin:'—'}
+];
+
+let sessionClientId = null;  // quem está logado (cliente ou administrador)
+let activeClientId  = 1;     // cujo plano está aberto
+let isAdmin         = false; // vem da conta, nunca de um interruptor
+let adminEditing    = false; // true quando o administrador está dentro do plano de um cliente
 
 function C(){ return clients.find(c=>c.id===activeClientId) || clients[0]; }
-function sessionUser(){ return clients.find(c=>c.id===sessionClientId) || clients[0]; }
+function sessionUser(){
+  return staff.find(s=>s.id===sessionClientId) || clients.find(c=>c.id===sessionClientId) || clients[0];
+}
 function tabs(){ return C().tabs; }
 function inScope(tab){
   const s = C().scope||{};
-  return adminEditing ? true : (s[tab.id]!==false);
+  return isAdmin ? true : (s[tab.id]!==false);
 }
 function visibleTabs(){ return tabs().filter(inScope); }
 let activeTabId = null;
@@ -203,79 +219,91 @@ function currentTab(){
 }
 
 /* ============================================================
-   3. LOGIN / LOGOUT
+   3. AVISOS, LOGIN E LOGOUT
    ============================================================ */
+/** Aviso discreto no canto da tela (substitui o alert do navegador). */
+function toast(msg, kind){
+  const box=document.getElementById('toasts');
+  if(!box) return;
+  const el=document.createElement('div');
+  el.className='toast '+(kind||'info');
+  el.textContent=msg;
+  box.appendChild(el);
+  setTimeout(()=>{ el.classList.add('out'); setTimeout(()=>el.remove(),250); }, 4500);
+}
+function nowLabel(){
+  return today().replace('.','') + ', ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+/** Mostra/esconde o que é exclusivo da consultoria, conforme o perfil da conta. */
+function applyRole(){
+  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden', !isAdmin));
+  document.querySelectorAll('.client-only').forEach(el=>el.classList.toggle('hidden', isAdmin));
+}
 function setAuthTab(which){
-  ['login','signup','forgot'].forEach(k=>{
+  ['login','forgot'].forEach(k=>{
     document.getElementById('auth-'+k).classList.toggle('hidden', which!==k);
   });
-  document.getElementById('tab-login').classList.toggle('active', which==='login');
-  document.getElementById('tab-signup').classList.toggle('active', which==='signup');
 }
-function sendReset(){
-  alert('Se este e-mail estiver cadastrado, o link de redefinição chega em alguns minutos.');
-  setAuthTab('login');
+function loginFail(msg){
+  const err=document.getElementById('login-error');
+  err.textContent=msg; err.classList.remove('hidden');
 }
 function doLogin(){
-  const email = (document.getElementById('login-email')||{}).value || '';
-  const match = clients.find(c=>c.email.toLowerCase()===email.trim().toLowerCase());
-  sessionClientId = match ? match.id : 1;
-  activeClientId = sessionClientId;
-  adminEditing = false;
+  const email=((document.getElementById('login-email')||{}).value||'').trim().toLowerCase();
+  const pass=(document.getElementById('login-pass')||{}).value||'';
+  if(!email || !pass){ loginFail('Informe o e-mail de acesso e a senha.'); return; }
+  const member = staff.find(x=>x.email.toLowerCase()===email) || clients.find(x=>(x.email||'').toLowerCase()===email);
+  if(!member){ loginFail('Não encontramos um acesso com esse e-mail. Fale com a consultoria da Empresa JR.'); return; }
+  if(member.suspended){ loginFail('Este acesso está suspenso. Fale com a consultoria da Empresa JR.'); return; }
+  document.getElementById('login-error').classList.add('hidden');
+  sessionClientId = member.id;
+  isAdmin = member.role==='admin';
+  adminEditing = isAdmin;
+  activeClientId = isAdmin ? clients[0].id : member.id;
+  activeTabId = null;
+  member.lastLogin = nowLabel();
+  document.getElementById('login-pass').value='';
   document.getElementById('view-auth').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
+  applyRole();
   updateShell();
-  go('dashboard');
+  go(isAdmin ? 'admin' : 'dashboard');
   probeAI();
 }
 function doLogout(){
   document.getElementById('app').classList.add('hidden');
   document.getElementById('view-auth').classList.remove('hidden');
-  adminEditing = false;
-  activeClientId = sessionClientId;
-  updateShell();
+  isAdmin=false; adminEditing=false; sessionClientId=null; activeTabId=null;
+  applyRole();
   setAuthTab('login');
   window.scrollTo(0,0);
+  persist();
 }
 
 /* ============================================================
-   4. MODO ADMINISTRADOR E PAINEL DO CLIENTE
+   4. PAINEL DO CLIENTE PELA CONSULTORIA
    ============================================================ */
-let isAdmin=false;
-function toggleAdmin(){
-  isAdmin=!isAdmin;
-  document.getElementById('admin-switch').classList.toggle('on', isAdmin);
-  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden', !isAdmin));
-  if(!isAdmin){
-    if(adminEditing) exitClientWorkspace(true);
-    if(currentView==='admin') go('dashboard');
-  }
-}
 function openClientWorkspace(id){
+  if(!isAdmin) return;
   const c = clients.find(x=>x.id===id);
   if(!c) return;
   activeClientId = id;
-  adminEditing = (id !== sessionClientId);
   activeTabId = null;
   updateShell();
   go('plano');
 }
-function exitClientWorkspace(silent){
-  activeClientId = sessionClientId;
-  adminEditing = false;
+function exitClientWorkspace(){
+  if(!isAdmin) return;
   activeTabId = null;
-  updateShell();
-  if(!silent) go('admin');
+  go('admin');
 }
 function updateShell(){
   const c=C(), u=sessionUser();
   document.getElementById('active-company').textContent = c.company;
   document.getElementById('side-user-name').textContent = u.name;
-  document.getElementById('side-user-role').textContent = adminEditing ? 'Consultoria Empresa JR' : u.company;
+  document.getElementById('side-user-role').textContent = isAdmin ? 'Consultoria Empresa JR' : u.company;
   document.getElementById('side-avatar').textContent = initialsOf(u.name);
   document.getElementById('top-avatar').textContent = initialsOf(u.name);
-  const bar=document.getElementById('impersonation-bar');
-  bar.classList.toggle('hidden', !adminEditing);
   document.getElementById('imp-client-name').textContent = c.name + ' · ' + c.company;
 }
 
@@ -285,8 +313,8 @@ function updateShell(){
 let currentView='dashboard';
 const pageMeta={
   dashboard:{title:'Dashboard'},
-  chat:{title:'Consultar Plano'},
-  plano:{title:'Plano de Negócios'},
+  chat:{title:'Consultar plano'},
+  plano:{title:'Plano de negócios'},
   indicadores:{title:'Indicadores'},
   config:{title:'Configurações'},
   admin:{title:'Clientes & Planos'},
@@ -297,7 +325,10 @@ function toggleSidebar(force){
   sb.classList.toggle('open', open);
   sc.style.display = open ? 'block' : 'none';
 }
+const ADMIN_VIEWS=['admin','config'];
 function go(view){
+  // só a consultoria entra nas telas administrativas
+  if(ADMIN_VIEWS.includes(view) && !isAdmin) view='dashboard';
   currentView=view;
   toggleSidebar(false);
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active', el.dataset.view===view));
@@ -306,6 +337,8 @@ function go(view){
   content.classList.toggle('chat-mode', view==='chat');
   content.appendChild(document.getElementById('tpl-'+view).content.cloneNode(true));
   document.getElementById('page-title').textContent = pageMeta[view].title;
+  document.getElementById('impersonation-bar').classList.toggle('hidden', !(isAdmin && !ADMIN_VIEWS.includes(view)));
+  applyRole();
   document.getElementById('page-crumb').textContent = view==='admin'
     ? 'Administração · Empresa JR'
     : C().company + (C().version ? ' · v'+C().version : '');
@@ -333,9 +366,10 @@ function setApiKey(v){ apiKey=v.trim(); aiState='unknown'; renderAiBadge(); }
 function renderAiBadge(){
   const b=document.getElementById('ai-badge');
   if(!b) return;
+  if(!isAdmin){ b.classList.add('hidden'); }
   const map={on:['on','IA conectada'],off:['off','IA indisponível'],unknown:['off','IA — verificando']};
   const [cls,label]=map[aiState];
-  b.className='ai-badge '+cls;
+  b.className='ai-badge '+cls+' admin-only'+(isAdmin?'':' hidden');
   b.textContent = aiState==='on' ? 'IA conectada' : (aiState==='off' ? 'IA offline' : 'IA');
   b.title=label;
   const s=document.getElementById('cfg-ai-state');
@@ -385,9 +419,8 @@ async function probeAI(){
 async function testAI(){
   aiState='unknown'; renderAiBadge();
   await probeAI();
-  alert(aiState==='on'
-    ? 'Conexão com a IA funcionando.'
-    : 'Não foi possível falar com a IA agora. O Chat Jr continua funcionando com a leitura local do PDF e a busca nas abas.');
+  if(aiState==='on') toast('Conexão com a IA funcionando.','ok');
+  else toast('Não foi possível falar com a IA agora. O Chat Jr segue com a leitura local do PDF e a busca nas abas.','error');
 }
 
 /* --- leitura de PDF no navegador (pdf.js) --- */
@@ -442,44 +475,36 @@ function fileToBase64(file){
 /* ============================================================
    7. DASHBOARD
    ============================================================ */
+function topTheme(c){
+  const e=Object.entries(c.tabHits||{}).sort((a,b)=>b[1]-a[1])[0];
+  if(!e) return '—';
+  const t=c.tabs.find(x=>x.id===e[0]);
+  return t ? t.name : '—';
+}
 function initDashboard(){
   const c=C(), u=sessionUser();
-  const done=c.tabs.filter(t=>t.attachment.processed).length;
-  document.getElementById('dash-hello').textContent = adminEditing
+  document.getElementById('dash-hello').textContent = isAdmin
     ? 'Painel de ' + c.name
-    : 'Olá, ' + u.name.split(' ')[0] + ' 👋';
-  document.getElementById('dash-sub').textContent = adminEditing
-    ? 'Você está vendo o Chat Jr exatamente como ' + c.name + ' vê. Tudo o que editar aqui vale para o plano dele.'
-    : 'Aqui está o resumo do Plano de Negócios da ' + c.company + ' e o que você pode consultar hoje.';
-
-  document.getElementById('dash-stats').innerHTML = `
-    <div class="card stat-card">
-      <div class="ic-wrap" style="background:var(--jr-blue-tint);"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M4 17V6l6-3 6 3v11" stroke="var(--jr-blue)" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
-      <div class="label">Empresa</div><div class="value">${esc(c.company)}</div><div class="sub">${esc(c.segment)}</div>
-    </div>
-    <div class="card stat-card">
-      <div class="ic-wrap" style="background:var(--teal-tint);"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M4 10.5 8 14l8-9" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div class="label">Status do plano</div><div class="value" style="font-size:16px;">${done} de ${c.tabs.length} abas processadas</div>
-      <span class="pill ${done===c.tabs.length?'teal':'amber'}" style="margin-top:7px;">${c.version?'Versão '+c.version+' · ':''}${esc(c.status)}</span>
-    </div>
-    <div class="card stat-card">
-      <div class="ic-wrap" style="background:var(--amber-tint);"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="var(--amber)" stroke-width="1.6"/><path d="M10 5.5V10l3 2" stroke="var(--amber)" stroke-width="1.6" stroke-linecap="round"/></svg></div>
-      <div class="label">Última atualização</div><div class="value">${esc(c.updated)}</div><div class="sub">${esc(c.planFile)}</div>
-    </div>
-    <div class="card stat-card">
-      <div class="ic-wrap" style="background:var(--jr-blue-tint);"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M3 5.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H5a2 2 0 0 1-2-2v-6Z" stroke="var(--jr-blue)" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
-      <div class="label">Consultas realizadas</div><div class="value">${c.consultas}</div><div class="sub">${c.conversations.length} conversa(s) salva(s)</div>
-    </div>`;
-
-  const qs = [
-    'Resuma meu Plano de Negócios','Quem é meu cliente ideal?',
-    'Quais são meus principais concorrentes?','Quais são minhas metas financeiras?',
-    'Quais são os maiores riscos do negócio?','Qual foi a estratégia de marketing definida?'
+    : 'Olá, ' + u.name.split(' ')[0];
+  document.getElementById('dash-sub').textContent = isAdmin
+    ? 'Você está vendo o Chat Jr como ' + c.name + ' vê.'
+    : 'Seu Plano de Negócios está disponível para consulta.';
+  const semResposta = Math.max(0, (c.asked||0) - (c.answered||0));
+  const rows = [
+    ['Última atualização', c.updated && c.updated!=='—' ? c.updated : 'Ainda não publicado'],
+    ['Consultas realizadas', String(c.consultas||0)],
+    ['Tema mais consultado', topTheme(c)],
+    ['Perguntas sem resposta no plano', String(semResposta)]
   ];
-  renderDashProgress();
-  document.getElementById('dash-suggest').innerHTML = qs.map(q=>
-    `<button class="suggest-chip" onclick="askFromSuggestion(${JSON.stringify(q).replace(/"/g,'&quot;')})"><span>${esc(q)}</span><span class="arrow">›</span></button>`
-  ).join('');
+  document.getElementById('dash-overview').innerHTML = rows.map(r=>
+    `<div class="kv"><dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd></div>`).join('');
+  const links = [
+    ['plano','Plano de negócios','Leia cada etapa do plano organizada como um documento.'],
+    ['chat','Consultar plano','Faça perguntas e veja de qual seção veio a resposta.'],
+    ['indicadores','Indicadores','Veja o que mais é consultado e onde o plano pode ficar mais claro.']
+  ];
+  document.getElementById('dash-explore').innerHTML = links.map(l=>
+    `<button class="link-row" onclick="go('${l[0]}')"><span><b>${l[1]}</b><span>${l[2]}</span></span><span class="arrow" aria-hidden="true">›</span></button>`).join('');
 }
 /**
  * Desenha um donut de progresso em SVG.
@@ -498,33 +523,6 @@ function donutSvg(pct, label, color){
       font-family="Roboto, sans-serif">${Math.round(pct)}%</text>
   </svg>`;
 }
-function renderDashProgress(){
-  const wrap=document.getElementById('dash-progress');
-  if(!wrap) return;
-  const list=visibleTabs();
-  const done=list.filter(t=>t.attachment.processed).length;
-  const waiting=list.filter(t=>!t.attachment.processed && (t.attachment.pdfName||t.attachment.slideLink)).length;
-  const pct=list.length ? (done/list.length)*100 : 0;
-  const labels={ok:'Processada',pending:'Anexo aguardando processamento',empty:'Sem anexo ainda'};
-  const chips=list.map(t=>{
-    const a=t.attachment;
-    const st=a.processed ? 'ok' : ((a.pdfName||a.slideLink) ? 'pending' : 'empty');
-    return `<button class="tab-chip ${st}" title="${labels[st]}" onclick="jumpToTab('${t.id}')"><span class="dot"></span>${esc(t.name)}</button>`;
-  }).join('');
-  const falta=list.length-done;
-  wrap.innerHTML = `${donutSvg(pct,'Abas processadas','var(--jr-blue)')}
-    <div>
-      <h3>Progresso do plano</h3>
-      <p class="sub">${done} de ${list.length} abas com conteúdo processado${waiting?', '+waiting+' com anexo esperando processamento':''}${falta&&!waiting?', '+falta+' ainda sem material':''}. Toque em uma aba para abrir.</p>
-      <div class="tab-chip-grid">${chips}</div>
-      <div class="legend">
-        <span><i style="background:var(--teal);"></i> Processada</span>
-        <span><i style="background:var(--jr-yellow);"></i> Anexo aguardando</span>
-        <span><i style="background:var(--muted-2);"></i> Sem anexo</span>
-      </div>
-    </div>`;
-}
-function jumpToTab(id){ activeTabId=id; go('plano'); }
 function askFromSuggestion(q){
   go('chat');
   setTimeout(()=>{ document.getElementById('chat-input').value=q; sendMessage(); },40);
@@ -534,6 +532,10 @@ function askFromSuggestion(q){
    8. PLANO DE NEGÓCIOS — ABAS E ANEXOS
    ============================================================ */
 function initPlano(){
+  const intro=document.getElementById('plano-intro');
+  if(intro) intro.textContent = isAdmin
+    ? 'Cada aba tem seu próprio anexo. Envie o PDF ou o link daquela parte do plano e clique em "Processar com IA".'
+    : 'Leia cada etapa do seu plano.';
   renderAttachPanel();
   renderTabList();
   renderTabContent();
@@ -543,6 +545,9 @@ function renderAttachPanel(){
   const tab=currentTab();
   const wrap=document.getElementById('attach-panel');
   if(!wrap) return;
+  // anexos, fonte e processamento são da consultoria: o cliente nem recebe o HTML
+  if(!isAdmin){ wrap.innerHTML=''; wrap.classList.add('hidden'); return; }
+  wrap.classList.remove('hidden');
   if(!tab){ wrap.innerHTML='<p style="margin:0;color:var(--muted);">Nenhuma aba liberada para este acesso.</p>'; return; }
   const a=tab.attachment;
   const hasSource = !!(a.pdfName || a.slideLink);
@@ -733,7 +738,7 @@ function renderTabList(){
   wrap.innerHTML='';
   const header=document.createElement('div');
   header.className='plan-cat-header';
-  header.innerHTML=`<span>ABAS</span><button class="btn blue" style="padding:6px 11px;font-size:12px;" onclick="openAddTabModal()">+ Nova aba</button>`;
+  header.innerHTML=`<span>${isAdmin?'ABAS':'ETAPAS'}</span>` + (isAdmin ? `<button class="btn blue" style="padding:6px 11px;font-size:12px;" onclick="openAddTabModal()">+ Nova aba</button>` : '');
   wrap.appendChild(header);
 
   const list=visibleTabs();
@@ -744,7 +749,7 @@ function renderTabList(){
     div.className='plan-cat-item'+(t.id===activeTabId?' active':'');
     div.innerHTML=`
       <span class="cat-name">${esc(t.name)}</span>
-      <span class="cat-item-actions">
+      ${isAdmin ? `<span class="cat-item-actions">
         ${(a.pdfName||a.slideLink) ? `<span class="cat-attach-dot ${a.processed?'':'pending'}" title="${a.processed?'Anexo processado':'Anexo aguardando processamento'}"></span>`:''}
         <button class="cat-icon-btn" title="Editar aba" onclick="openEditTabModal('${t.id}',event)">
           <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M14.2 2.8a1.6 1.6 0 0 1 2.3 2.3L7 14.6l-3 .7.7-3 9.5-9.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
@@ -752,7 +757,7 @@ function renderTabList(){
         <button class="cat-icon-btn del" title="Excluir aba" onclick="deleteTab('${t.id}',event)">
           <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M4.5 6h11M8 6V4.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V6m-6.5 0 .6 9a1 1 0 0 0 1 .9h5.8a1 1 0 0 0 1-.9l.6-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-      </span>`;
+      </span>` : ''}`;
     div.onclick=()=>{
       activeTabId=t.id;
       const si=document.getElementById('plan-search-input'); if(si) si.value='';
@@ -768,9 +773,16 @@ function renderTabContent(){
   const t=currentTab();
   if(!t){ wrap.innerHTML=''; return; }
   const a=t.attachment;
-  const meta = a.processed
-    ? 'Extraído pela IA · atualizado em ' + (a.processedAt || C().updated)
-    : 'Sem conteúdo processado · anexe o PDF ou o link desta aba acima';
+  if(!isAdmin && !a.processed && !a.knowledge){
+    wrap.innerHTML=`<div class="card plan-content"><div class="eyebrow">Plano de negócios · ${esc(C().company)}</div>
+      <h2>${esc(t.title||t.name)}</h2>
+      <p class="empty-note">Esta etapa ainda não foi publicada pela consultoria. Assim que estiver disponível, ela aparece aqui.</p></div>`;
+    return;
+  }
+  const meta = isAdmin
+    ? (a.processed ? 'Extraído pela IA · atualizado em ' + (a.processedAt || C().updated)
+                   : 'Sem conteúdo processado · anexe o PDF ou o link desta aba acima')
+    : 'Atualizado em ' + (a.processedAt || C().updated);
   wrap.innerHTML=`<div class="card plan-content">
       <div class="eyebrow">Plano de Negócios · ${esc(C().company)}</div>
       <h2>${esc(t.title||t.name)}</h2>
@@ -826,7 +838,7 @@ function openEditTabModal(id,ev){
 }
 function saveTabModal(){
   const name=document.getElementById('tab-name-input').value.trim();
-  if(!name){ alert('Dê um nome para a aba.'); return; }
+  if(!name){ toast('Dê um nome para a aba.','error'); return; }
   const raw=document.getElementById('tab-content-input').value.trim();
   const html = raw ? textToHtml(raw) : emptyTabHtml();
   const list=tabs();
@@ -853,7 +865,7 @@ function saveTabModal(){
 function deleteTab(id,ev){
   if(ev) ev.stopPropagation();
   const list=tabs();
-  if(list.length<=1){ alert('O plano precisa de pelo menos uma aba.'); return; }
+  if(list.length<=1){ toast('O plano precisa de pelo menos uma aba.','error'); return; }
   const t=list.find(x=>x.id===id);
   if(!t) return;
   if(!confirm('Excluir a aba "'+t.name+'"? O conteúdo e os anexos dela serão perdidos.')) return;
@@ -990,7 +1002,9 @@ async function sendMessage(){
 }
 async function aiAnswer(question, conv){
   const kb=knowledgeBase();
-  if(!kb) return {html:'<p>Nenhuma aba do plano foi processada ainda. Vá em <b>Plano de Negócios</b>, anexe o PDF ou o link de uma aba e clique em "Processar com IA". Depois disso eu consigo responder a partir do conteúdo.</p>'};
+  if(!kb) return {html: isAdmin
+    ? '<p>Nenhuma aba do plano foi processada ainda. Vá em <b>Plano de negócios</b>, anexe o PDF ou o link de uma aba e clique em "Processar com IA".</p>'
+    : '<p>O plano ainda não foi publicado pela consultoria. Assim que as etapas estiverem disponíveis, você poderá consultá-las aqui.</p>'};
   const system = [
     'Você é o Chat Jr, assistente da Empresa JR que responde perguntas sobre o Plano de Negócios de um cliente.',
     'Responda em português do Brasil, apenas com base no PLANO fornecido.',
@@ -1025,7 +1039,7 @@ function localAnswer(question){
   if(!best || best.sc===0){
     return {html:'<p>Não encontrei essa informação no seu Plano de Negócios. Se quiser, posso ajudar a identificar quais dados precisariam ser registrados para responder isso.</p>'};
   }
-  return {html: best.t.html, source: best.t.name + ' (busca nas abas, sem IA)'};
+  return {html: best.t.html, source: best.t.name};
 }
 function registerQuery(question, answer){
   const c=C();
@@ -1104,7 +1118,7 @@ function saveProfile(){
   u.name=document.getElementById('cfg-name').value.trim()||u.name;
   u.email=document.getElementById('cfg-email').value.trim()||u.email;
   updateShell();
-  alert('Perfil salvo.');
+  toast('Perfil salvo.','ok');
 }
 function saveCompany(){
   const c=C();
@@ -1112,7 +1126,7 @@ function saveCompany(){
   c.segment=document.getElementById('cfg-segment').value.trim()||c.segment;
   updateShell();
   document.getElementById('page-crumb').textContent=c.company+(c.version?' · v'+c.version:'');
-  alert('Dados da empresa salvos.');
+  toast('Dados da empresa salvos.','ok');
 }
 
 /* ============================================================
@@ -1124,7 +1138,8 @@ function renderAdminTable(){
   tb.innerHTML='';
   clients.forEach(c=>{
     const done=c.tabs.filter(t=>t.attachment.processed).length;
-    const pill=c.status==='Processado'?'teal':(c.status==='Pendente'?'amber':'blue');
+    const pill=c.suspended?'amber':(c.status==='Processado'?'teal':(c.status==='Pendente'?'amber':'blue'));
+    const stLabel=c.suspended?'Acesso suspenso':c.status;
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td><div class="client-cell"><div class="mini-avatar">${esc(initialsOf(c.name))}</div>
@@ -1134,7 +1149,7 @@ function renderAdminTable(){
       <td>${done}/${c.tabs.length}</td>
       <td>${esc(c.updated)}</td>
       <td>${c.consultas}</td>
-      <td><span class="pill ${pill}">${esc(c.status)}</span></td>
+      <td><span class="pill ${pill}">${esc(stLabel)}</span></td>
       <td><div class="row-actions">
         <button class="btn blue" onclick="event.stopPropagation();openClientWorkspace(${c.id})">Abrir painel</button>
         <button class="btn" onclick="event.stopPropagation();openClientAccess(${c.id})">Acesso</button>
@@ -1150,19 +1165,27 @@ function openNewClient(){
   openModal('new-client-modal');
 }
 function createClient(){
+  if(!isAdmin) return;
   const name=document.getElementById('nc-name').value.trim();
-  const email=document.getElementById('nc-email').value.trim();
+  const email=document.getElementById('nc-email').value.trim().toLowerCase();
   const company=document.getElementById('nc-company').value.trim();
   const segment=document.getElementById('nc-segment').value.trim()||'—';
-  if(!name || !company){ alert('Informe pelo menos o nome do responsável e a empresa.'); return; }
+  if(!name || !company){ toast('Informe o nome do responsável e a empresa.','error'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Informe um e-mail de acesso válido.','error'); return; }
+  if(staff.some(x=>x.email.toLowerCase()===email) || clients.some(x=>(x.email||'').toLowerCase()===email)){
+    toast('Já existe um acesso com esse e-mail.','error'); return;
+  }
+  const id = Math.max(...clients.map(c=>c.id)) + 1;
   clients.push({
-    id: Date.now(), name, email: email||'—', company, segment,
-    version:0, planFile:'— nenhum plano —', updated:'—', status:'Pendente',
+    id, role:'client', name, email, company, segment,
+    version:0, planFile:'— nenhum plano —', updated:'—', status:'Pendente', suspended:false,
     lastLogin:'Nunca acessou', consultas:0, answered:0, asked:0,
     tabs:defaultTabs(), tabHits:{}, faq:[], scope:{}, conversations:[], activeConvId:null
   });
   closeModal('new-client-modal');
   renderAdminTable();
+  persist();
+  toast('Acesso criado para ' + name + '.','ok');
 }
 
 let accessTab='login', accessClient=null;
@@ -1186,10 +1209,11 @@ function renderAccessModal(){
       <div class="access-login-row"><span class="k">Empresa vinculada</span><span class="v">${esc(c.company)}</span></div>
       <div class="access-login-row"><span class="k">Último acesso</span><span class="v">${esc(c.lastLogin)}</span></div>
       <div class="access-login-row"><span class="k">Status do plano</span><span class="v">${esc(c.status)}</span></div>
+      <div class="access-login-row"><span class="k">Status do acesso</span><span class="v">${c.suspended?'Suspenso':'Ativo'}</span></div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:18px;">
         <button class="btn blue" onclick="closeModal('client-access-modal');openClientWorkspace(${c.id})">Abrir o painel deste cliente</button>
-        <button class="btn" onclick="alert('Link de redefinição enviado para ${esc(c.email)}.')">Enviar link de redefinição de senha</button>
-        <button class="btn danger" onclick="alert('Acesso de ${esc(c.name)} suspenso.')">Suspender acesso</button>
+        <button class="btn" onclick="toast('O envio de e-mail depende do servidor (versão Java). Por enquanto, combine a nova senha direto com o cliente.','info')">Redefinir senha</button>
+        <button class="btn danger" onclick="toggleSuspend(${c.id})">${c.suspended?'Reativar acesso':'Suspender acesso'}</button>
       </div>`;
   } else {
     body.innerHTML=`
@@ -1202,7 +1226,16 @@ function renderAccessModal(){
       </div>`;
   }
 }
-function toggleScope(id,val){ accessClient.scope[id]=val; }
+function toggleScope(id,val){ accessClient.scope[id]=val; persist(); }
+function toggleSuspend(id){
+  if(!isAdmin) return;
+  const c=clients.find(x=>x.id===id);
+  if(!c) return;
+  c.suspended=!c.suspended;
+  toast(c.suspended ? 'Acesso de '+c.name+' suspenso.' : 'Acesso de '+c.name+' reativado.','ok');
+  if(accessClient && accessClient.id===c.id) renderAccessModal();
+  renderAdminTable(); persist();
+}
 
 /* ============================================================
    13. PERSISTÊNCIA NO NAVEGADOR
@@ -1242,10 +1275,11 @@ function snapshot(){
     theme:currentTheme,
     model:AI_MODEL,
     loggedIn: !document.getElementById('app').classList.contains('hidden'),
-    sessionClientId, activeClientId, isAdmin,
+    sessionClientId, activeClientId,
     clients: clients.map(c=>({
       id:c.id, name:c.name, email:c.email, company:c.company, segment:c.segment,
       version:c.version, planFile:c.planFile, updated:c.updated, status:c.status,
+      role:c.role||'client', suspended:!!c.suspended,
       lastLogin:c.lastLogin, consultas:c.consultas, asked:c.asked, answered:c.answered,
       tabs:(c.tabs||[]).map(cleanTabForStorage),
       conversations:c.conversations||[], activeConvId:c.activeConvId,
@@ -1279,20 +1313,20 @@ function restore(){
     c.scope = c.scope||{}; c.tabHits = c.tabHits||{}; c.faq = c.faq||[];
     return c;
   });
-  sessionClientId = data.sessionClientId || clients[0].id;
-  activeClientId  = data.activeClientId  || sessionClientId;
-  if(!clients.some(c=>c.id===activeClientId)) activeClientId = sessionClientId;
-  adminEditing = activeClientId !== sessionClientId;
-  isAdmin = !!data.isAdmin;
+  // o perfil sempre é derivado da conta, nunca de um valor salvo à parte
+  const known = data.sessionClientId && (staff.some(x=>x.id===data.sessionClientId) || clients.some(x=>x.id===data.sessionClientId));
+  sessionClientId = known ? data.sessionClientId : null;
+  isAdmin = staff.some(x=>x.id===sessionClientId);
+  adminEditing = isAdmin;
+  activeClientId = clients.some(x=>x.id===data.activeClientId) ? data.activeClientId : (isAdmin ? clients[0].id : sessionClientId);
   if(data.model) AI_MODEL=data.model;
   applyTheme(data.theme==='dark' ? 'dark' : 'light');
-  document.getElementById('admin-switch').classList.toggle('on', isAdmin);
-  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden', !isAdmin));
-  updateShell();
-  if(data.loggedIn){
+  applyRole();
+  if(sessionClientId) updateShell();
+  if(data.loggedIn && sessionClientId){
     document.getElementById('view-auth').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
-    go('dashboard');
+    go(isAdmin ? 'admin' : 'dashboard');
     probeAI();
   }
   return true;
@@ -1320,15 +1354,15 @@ function importData(input){
   reader.onload=()=>{
     let data;
     try{ data=JSON.parse(String(reader.result)); }
-    catch(e){ alert('Esse arquivo não é uma cópia válida do Chat Jr.'); return; }
+    catch(e){ toast('Esse arquivo não é uma cópia válida do Chat Jr.','error'); return; }
     if(!data || !Array.isArray(data.clients) || !data.clients.length){
-      alert('Esse arquivo não tem nenhum plano dentro.'); return;
+      toast('Esse arquivo não tem nenhum plano dentro.','error'); return;
     }
     if(!confirm('Substituir os dados deste navegador pelo conteúdo de "'+file.name+'"?')) return;
     try{ window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){}
     window.location.reload();
   };
-  reader.onerror=()=>alert('Não foi possível ler o arquivo.');
+  reader.onerror=()=>toast('Não foi possível ler o arquivo.','error');
   reader.readAsText(file);
   input.value='';
 }
