@@ -3,6 +3,8 @@ package org.empresajr.chatjr.service;
 import org.empresajr.chatjr.domain.Attachment;
 import org.empresajr.chatjr.domain.AttachmentState;
 import org.empresajr.chatjr.domain.PlanTab;
+import org.empresajr.chatjr.domain.TabChunk;
+import org.empresajr.chatjr.domain.TextChunker;
 import org.empresajr.chatjr.repository.AttachmentRepository;
 import org.empresajr.chatjr.repository.TabChunkRepository;
 import org.empresajr.chatjr.web.ApiException;
@@ -81,6 +83,7 @@ public class AttachmentService {
         attachment.replacePdf(displayName(file.getOriginalFilename()), extracted.text(), extracted.pages(),
                 relative, bytes.length, clock.instant());
         attachments.save(attachment);
+        rebuildChunks(tabId, extracted.text());
         audit.record("PDF_UPLOADED", clientId, tabId, tab.getName(), attachment.getPdfName());
         return AttachmentView.of(attachment);
     }
@@ -114,6 +117,16 @@ public class AttachmentService {
         chunks.deleteAllByTabId(tabId);
         attachments.delete(attachment);
         audit.record("ATTACHMENT_REMOVED", clientId, tabId, tab.getName(), null);
+    }
+
+    /** Refaz os trechos de busca do PDF da aba. O chat consulta estes trechos: o PDF é o entregável final. */
+    @Transactional
+    public void rebuildChunks(Long tabId, String pdfText) {
+        chunks.deleteAllByTabId(tabId);
+        int index = 0;
+        for (String part : TextChunker.chunk(pdfText)) {
+            chunks.save(new TabChunk(tabId, index++, part));
+        }
     }
 
     private String store(Long clientId, Long tabId, byte[] bytes) {

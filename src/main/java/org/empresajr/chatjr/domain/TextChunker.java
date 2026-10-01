@@ -6,7 +6,15 @@ import java.util.List;
 /** Divide o texto do PDF em trechos de tamanho parecido, com um pouco de sobreposição, para a busca por relevância. */
 public final class TextChunker {
 
+    /** Tamanho e sobreposição usados em todo o sistema (upload, processamento e chat). */
+    public static final int DEFAULT_TARGET = 900;
+    public static final int DEFAULT_OVERLAP = 120;
+
     private TextChunker() {
+    }
+
+    public static List<String> chunk(String text) {
+        return chunk(text, DEFAULT_TARGET, DEFAULT_OVERLAP);
     }
 
     public static List<String> chunk(String text, int target, int overlap) {

@@ -1,6 +1,11 @@
 package org.empresajr.chatjr;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +25,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import com.sun.net.httpserver.HttpServer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -239,5 +245,25 @@ public abstract class AbstractIntegrationTest {
         String password = randomPassword();
         install(email, password);
         return loginOk(email, password);
+    }
+
+    /** PDF de teste com uma linha de texto por item. */
+    protected static byte[] buildPdf(String... lines) throws Exception {
+        try (PDDocument doc = new PDDocument(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            PDPage page = new PDPage();
+            doc.addPage(page);
+            try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {
+                cs.beginText();
+                cs.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                cs.newLineAtOffset(50, 700);
+                for (String line : lines) {
+                    cs.showText(line);
+                    cs.newLineAtOffset(0, -16);
+                }
+                cs.endText();
+            }
+            doc.save(out);
+            return out.toByteArray();
+        }
     }
 }

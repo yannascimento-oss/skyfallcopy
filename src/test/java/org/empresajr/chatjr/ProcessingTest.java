@@ -145,6 +145,8 @@ class ProcessingTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.processed").value(false));
         String text = jdbc.queryForObject("SELECT pdf_text FROM attachment WHERE tab_id = ?", String.class, tabId);
         assertTrue(text.contains("dez por cento"));
+        assertTrue(jdbc.queryForObject("SELECT count(*) FROM tab_chunk WHERE tab_id = ?", Integer.class, tabId) > 0,
+                "o PDF já fica consultável pelo chat logo no upload, sem precisar processar");
         assertTrue(Files.exists(Path.of(dataDir, "attachments", String.valueOf(clientId), tabId + ".pdf")));
     }
 

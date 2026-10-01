@@ -15,12 +15,9 @@ import org.empresajr.chatjr.domain.GeneratedContent;
 import org.empresajr.chatjr.domain.HtmlSanitizer;
 import org.empresajr.chatjr.domain.PlanTab;
 import org.empresajr.chatjr.domain.PromptBuilder;
-import org.empresajr.chatjr.domain.TabChunk;
-import org.empresajr.chatjr.domain.TextChunker;
 import org.empresajr.chatjr.repository.AiCallLogRepository;
 import org.empresajr.chatjr.repository.AttachmentRepository;
 import org.empresajr.chatjr.repository.ClientAccountRepository;
-import org.empresajr.chatjr.repository.TabChunkRepository;
 import org.empresajr.chatjr.web.ApiException;
 import org.empresajr.chatjr.web.dto.AttachmentView;
 import org.slf4j.Logger;
@@ -46,14 +43,11 @@ import java.util.concurrent.ExecutorService;
 public class ProcessingService {
 
     private static final Logger log = LoggerFactory.getLogger(ProcessingService.class);
-    private static final int CHUNK_TARGET = 900;
-    private static final int CHUNK_OVERLAP = 120;
     private static final String TAIL = " O conteúdo foi extraído do PDF sem reescrita.";
 
     private final PlanService plans;
     private final AttachmentService attachmentService;
     private final AttachmentRepository attachments;
-    private final TabChunkRepository chunks;
     private final ClientAccountRepository accounts;
     private final AiCallLogRepository callLogs;
     private final AiClient ai;
@@ -66,14 +60,13 @@ public class ProcessingService {
     private final Clock clock;
 
     public ProcessingService(PlanService plans, AttachmentService attachmentService, AttachmentRepository attachments,
-                             TabChunkRepository chunks, ClientAccountRepository accounts, AiCallLogRepository callLogs,
+                             ClientAccountRepository accounts, AiCallLogRepository callLogs,
                              AiClient ai, SettingsService settings, LimitService limits, AuditService audit,
                              AppErrorService appErrors, TransactionTemplate tx,
                              @Qualifier("processingExecutor") ExecutorService executor, Clock clock) {
         this.plans = plans;
         this.attachmentService = attachmentService;
         this.attachments = attachments;
-        this.chunks = chunks;
         this.accounts = accounts;
         this.callLogs = callLogs;
         this.ai = ai;
@@ -149,11 +142,7 @@ public class ProcessingService {
             String finalNote = note;
             tx.executeWithoutResult(status -> {
                 plans.applyGenerated(clientId, tabId, finalContent, input.pdfName(), actorEmail, actorId);
-                chunks.deleteAllByTabId(tabId);
-                int index = 0;
-                for (String part : TextChunker.chunk(input.pdfText(), CHUNK_TARGET, CHUNK_OVERLAP)) {
-                    chunks.save(new TabChunk(tabId, index++, part));
-                }
+                attachmentService.rebuildChunks(tabId, input.pdfText());
                 Attachment attachment = attachments.findByTabId(tabId).orElseThrow();
                 attachment.markDone(finalContent.sections(), finalNote, clock.instant());
                 attachments.save(attachment);

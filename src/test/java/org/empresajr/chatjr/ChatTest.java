@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -20,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -356,6 +358,70 @@ class ChatTest extends AbstractIntegrationTest {
         mvc.perform(get("/api/chat/conversations/" + id + "/messages").session(ana.session())).andExpect(status().isNotFound());
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM chat_message", Integer.class));
         assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM query_log", Integer.class));
+    }
+
+    // ---------- o PDF é o entregável final ----------
+
+    private void uploadPdf(ClientLogin client, long tabId, byte[] pdf) throws Exception {
+        mvc.perform(withCsrf(multipart("/api/admin/clients/" + client.id() + "/tabs/" + tabId + "/attachment")
+                .file(new MockMultipartFile("file", "plano.pdf", "application/pdf", pdf))).session(admin))
+                .andExpect(status().isOk());
+    }
+
+    private long tabIdOf(ClientLogin client, String name) throws Exception {
+        JsonNode tabs = json.readTree(mvc.perform(get("/api/clients/" + client.id() + "/tabs").session(admin))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));
+        for (JsonNode t : tabs) {
+            if (t.get("name").asText().equals(name)) {
+                return t.get("id").asLong();
+            }
+        }
+        throw new AssertionError(name);
+    }
+
+    @Test
+    void chatInterpretsThePdfEvenWhenTheTabTextLacksTheDetail() throws Exception {
+        // Só o upload: sem "processar". O PDF tem um detalhe que o texto da aba não traz.
+        uploadPdf(ana, mercadoId, buildPdf("Mercado", "A taxa de conversão de visitantes em alunos é de quatro por cento."));
+
+        JsonNode answer = body(ask(ana, null, "Qual a taxa de conversão de visitantes?").andExpect(status().isOk()));
+        assertTrue(answer.get("answered").asBoolean());
+        assertEquals(1, AI_CALLS.size());
+        String sent = lastAiUserMessage();
+        assertTrue(sent.contains("<trecho etapa=\"Mercado\">") && sent.contains("quatro por cento"), sent);
+    }
+
+    @Test
+    void whenAPdfExistsItIsTheSourceNotTheTabSummary() throws Exception {
+        uploadPdf(ana, mercadoId, buildPdf("Mercado", "O mercado local tem vinte academias concorrentes."));
+        ask(ana, null, "Quanto o mercado cresce?").andExpect(status().isOk());
+        String sent = lastAiUserMessage();
+        assertTrue(sent.contains("vinte academias"));
+        assertFalse(sent.contains("dez por cento ao ano no Brasil"), "o resumo da aba não entra quando há PDF");
+    }
+
+    @Test
+    void pdfOfBlockedOrDraftTabsStaysInvisible() throws Exception {
+        uploadPdf(ana, tabIdOf(ana, "Plano Financeiro"), buildPdf("Orçamento", "O orçamento secreto de marketing é de oitocentos mil."));
+        uploadPdf(ana, tabIdOf(ana, "Metas"), buildPdf("Metas", "A meta oculta de faturamento é de três milhões."));
+
+        JsonNode a1 = body(ask(ana, null, "Qual o orçamento secreto de marketing?").andExpect(status().isOk()));
+        JsonNode a2 = body(ask(ana, null, "Qual a meta oculta de faturamento?").andExpect(status().isOk()));
+        assertFalse(a1.get("answered").asBoolean());
+        assertFalse(a2.get("answered").asBoolean());
+        assertEquals(0, AI_CALLS.size());
+        assertFalse(a1.toString().contains("oitocentos") || a2.toString().contains("três milhões"));
+    }
+
+    @Test
+    void removingThePdfReturnsToTheTabText() throws Exception {
+        uploadPdf(ana, mercadoId, buildPdf("Mercado", "A taxa de conversão de visitantes em alunos é de quatro por cento."));
+        mvc.perform(withCsrf(delete("/api/admin/clients/" + ana.id() + "/tabs/" + mercadoId + "/attachment")).session(admin))
+                .andExpect(status().isNoContent());
+
+        assertFalse(body(ask(ana, null, "Qual a taxa de conversão de visitantes?")).get("answered").asBoolean());
+        assertTrue(body(ask(ana, null, "Quanto o mercado cresce?")).get("answered").asBoolean());
+        assertTrue(lastAiUserMessage().contains("dez por cento"));
     }
 
     // ---------- indicadores ----------

@@ -18,11 +18,13 @@ import org.empresajr.chatjr.domain.PromptBuilder;
 import org.empresajr.chatjr.domain.QueryClassifier;
 import org.empresajr.chatjr.domain.QueryLog;
 import org.empresajr.chatjr.domain.QueryType;
+import org.empresajr.chatjr.domain.TabChunk;
 import org.empresajr.chatjr.domain.TextChunker;
 import org.empresajr.chatjr.repository.AiCallLogRepository;
 import org.empresajr.chatjr.repository.ChatMessageRepository;
 import org.empresajr.chatjr.repository.ConversationRepository;
 import org.empresajr.chatjr.repository.QueryLogRepository;
+import org.empresajr.chatjr.repository.TabChunkRepository;
 import org.empresajr.chatjr.web.ApiException;
 import org.empresajr.chatjr.web.dto.ChatAnswer;
 import org.empresajr.chatjr.web.dto.ConversationView;
@@ -34,7 +36,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -53,13 +57,12 @@ public class ChatService {
     private static final int TOP_K = 6;
     private static final int FALLBACK_EXCERPTS = 3;
     private static final int MAX_HISTORY_CHARS = 400;
-    private static final int CHUNK_TARGET = 900;
-    private static final int CHUNK_OVERLAP = 120;
 
     private final PlanService plans;
     private final ConversationRepository conversations;
     private final ChatMessageRepository messages;
     private final QueryLogRepository queryLogs;
+    private final TabChunkRepository tabChunks;
     private final AiCallLogRepository callLogs;
     private final AiClient ai;
     private final SettingsService settings;
@@ -68,12 +71,13 @@ public class ChatService {
     private final Clock clock;
 
     public ChatService(PlanService plans, ConversationRepository conversations, ChatMessageRepository messages,
-                       QueryLogRepository queryLogs, AiCallLogRepository callLogs, AiClient ai,
+                       QueryLogRepository queryLogs, TabChunkRepository tabChunks, AiCallLogRepository callLogs, AiClient ai,
                        SettingsService settings, LimitService limits, TransactionTemplate tx, Clock clock) {
         this.plans = plans;
         this.conversations = conversations;
         this.messages = messages;
         this.queryLogs = queryLogs;
+        this.tabChunks = tabChunks;
         this.callLogs = callLogs;
         this.ai = ai;
         this.settings = settings;
@@ -85,7 +89,7 @@ public class ChatService {
     private record Turn(boolean user, String text) {
     }
 
-    private record Prepared(List<PlanTab> tabs, List<Turn> history) {
+    private record Prepared(List<PlanTab> tabs, Map<Long, List<String>> pdfChunks, List<Turn> history) {
     }
 
     private record Outcome(String html, String source, Long sourceTabId, boolean inference, boolean degraded,
@@ -115,7 +119,15 @@ public class ChatService {
                             text.length() > MAX_HISTORY_CHARS ? text.substring(0, MAX_HISTORY_CHARS) : text));
                 }
             }
-            return new Prepared(plans.visibleTabs(clientId), history);
+            List<PlanTab> visible = plans.visibleTabs(clientId);
+            Map<Long, List<String>> pdfChunks = new HashMap<>();
+            if (!visible.isEmpty()) {
+                for (TabChunk c : tabChunks.findByTabIdInOrderByTabIdAscChunkIndexAsc(
+                        visible.stream().map(PlanTab::getId).toList())) {
+                    pdfChunks.computeIfAbsent(c.getTabId(), k -> new ArrayList<>()).add(c.getContent());
+                }
+            }
+            return new Prepared(visible, pdfChunks, history);
         });
 
         Outcome outcome = decide(clientId, question, prepared);
@@ -130,7 +142,7 @@ public class ChatService {
         if (prepared.tabs().isEmpty()) {
             return new Outcome(NOTHING_RELEASED, null, null, false, false, false, guessed, null);
         }
-        KnowledgeIndex index = buildIndex(prepared.tabs());
+        KnowledgeIndex index = buildIndex(prepared.tabs(), prepared.pdfChunks());
         List<KnowledgeIndex.Hit> hits = index.search(searchQuery(question, prepared.history()), TOP_K);
         if (hits.isEmpty()) {
             return new Outcome(NOT_IN_PLAN, null, null, false, false, false, guessed, null);
@@ -180,11 +192,19 @@ public class ChatService {
         }
     }
 
-    private static KnowledgeIndex buildIndex(List<PlanTab> tabs) {
+    /**
+     * O PDF é o entregável final, então é ele que a IA interpreta. Aba sem PDF (escrita à mão) usa o próprio texto.
+     * Só entram abas que o cliente pode ler.
+     */
+    private static KnowledgeIndex buildIndex(List<PlanTab> tabs, Map<Long, List<String>> pdfChunks) {
         List<KnowledgeIndex.Doc> docs = new ArrayList<>();
         for (PlanTab tab : tabs) {
+            List<String> parts = pdfChunks.getOrDefault(tab.getId(), List.of());
+            if (parts.isEmpty()) {
+                parts = TextChunker.chunk(HtmlText.toPlain(tab.getHtml()));
+            }
             int i = 0;
-            for (String part : TextChunker.chunk(HtmlText.toPlain(tab.getHtml()), CHUNK_TARGET, CHUNK_OVERLAP)) {
+            for (String part : parts) {
                 docs.add(new KnowledgeIndex.Doc(tab.getId(), tab.getName(), i++, part));
             }
         }

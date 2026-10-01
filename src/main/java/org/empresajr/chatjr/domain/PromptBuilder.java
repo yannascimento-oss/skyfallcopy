@@ -50,7 +50,7 @@ public final class PromptBuilder {
                 Você responde perguntas do dono da empresa sobre o plano dele.
 
                 Regras:
-                1. Responda SOMENTE com base nos <trecho> fornecidos. Nunca complete com conhecimento externo, estimativas suas ou exemplos inventados.
+                1. Os <trecho> vêm do documento final do Plano de Negócios que a consultoria entregou ao cliente. Interprete e explique esse conteúdo com clareza, mas responda SOMENTE com base nos <trecho> fornecidos. Nunca complete com conhecimento externo, estimativas suas ou exemplos inventados.
                 2. Se a resposta não estiver nos trechos, diga que isso não consta no plano e use "answerable": false.
                 3. Se precisar concluir algo que não está escrito literalmente (um cálculo, uma comparação, uma recomendação), use "inference": true e deixe claro no texto que é uma dedução a partir do plano.
                 4. Diga de qual etapa tirou a informação em "source", copiando exatamente o nome da etapa do atributo etapa do <trecho> usado. Se não usou nenhum, deixe "source" vazio.
