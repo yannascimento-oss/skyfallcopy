@@ -1,1 +1,0 @@
-# Claude Integration Test

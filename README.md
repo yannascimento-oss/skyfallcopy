@@ -57,6 +57,15 @@ Contas de demonstração: `consultoria@empresajr.org` (administrador) e os e-mai
 
 > **Atenção: isto não é segurança de verdade.** Esta versão não tem servidor. O perfil vem da conta, mas a senha **não é verificada** e todos os dados ficam no `localStorage` do navegador, então qualquer pessoa com o DevTools consegue ler ou alterar tudo. Autenticação com senha cifrada, autorização por perfil e isolamento entre clientes só existem na versão com backend (Java/Spring Boot). Não coloque dados reais de clientes nesta versão.
 
+## Conteúdo dos planos (administração)
+
+Em **Conteúdo dos planos** a consultoria escolhe um cliente e gerencia cada etapa: título, descrição curta, "o que é", objetivo, principais pontos, perguntas sugeridas, fonte (PDF ou link), processamento com IA e publicação.
+
+- Ao processar uma etapa, a IA devolve o texto **e** os metadados. Só são gravados os campos que o material sustenta; o que a IA deixar vazio não sobrescreve o que a consultoria já editou.
+- O HTML vindo da IA passa por uma lista de tags permitidas (`p b ul ol li h4 table tr th td`) antes de ser gravado ou exibido.
+- Uma etapa **não publicada** some da visão do cliente e fica fora do contexto do chat.
+- Etapas de demonstração mostram só uma definição genérica de "o que é" e "objetivo". Reprocessar com IA troca isso pelo que o material do cliente realmente diz.
+
 ## Configuração da IA
 
 - Abra **Configurações → Inteligência artificial** dentro do app.

@@ -144,6 +144,10 @@
         <svg class="ic" viewBox="0 0 20 20" fill="none"><rect x="2.5" y="4" width="15" height="12" rx="1.8" stroke="currentColor" stroke-width="1.6"/><path d="M2.5 8h15" stroke="currentColor" stroke-width="1.6"/></svg>
         Clientes &amp; Planos
       </button>
+      <button class="nav-item admin-only hidden" data-view="conteudo" onclick="go('conteudo')">
+        <svg class="ic" viewBox="0 0 20 20" fill="none"><path d="M6 2.5h6l3 3V17a.5.5 0 0 1-.5.5h-9A.5.5 0 0 1 5 17V3a.5.5 0 0 1 .5-.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 9h5M8 12h5M8 6h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Conteúdo dos planos
+      </button>
       <button class="nav-item admin-only hidden" data-view="config" onclick="go('config')">
         <svg class="ic" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 2.7v1.8M10 15.5v1.8M17.3 10h-1.8M4.5 10H2.7M15.1 4.9l-1.3 1.3M6.2 13.8l-1.3 1.3M15.1 15.1l-1.3-1.3M6.2 6.2 4.9 4.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         Configurações
@@ -257,28 +261,15 @@
 </template>
 
 <template id="tpl-indicadores">
-  <div class="section-head" style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-    <div>
-      <h1>Indicadores</h1>
-      <p>Como o plano está sendo consultado e quais abas concentram as perguntas.</p>
-    </div>
-    <div class="pill blue"><span class="ind-live-dot"></span><span id="ind-last-updated">Atualizado agora</span></div>
+  <div class="section-head">
+    <h1>Indicadores</h1>
+    <p>O que o cliente está tentando entender no Plano de Negócios, e onde o plano ainda pode ficar mais claro.</p>
   </div>
-  <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
-    <div class="card stat-card"><div class="label">Consultas no mês</div><div class="value" id="ind-consultas">0</div><div class="sub" id="ind-consultas-sub">—</div></div>
-    <div class="card stat-card"><div class="label">Abas processadas</div><div class="value" id="ind-abas">0</div><div class="sub" id="ind-abas-sub">—</div></div>
-    <div class="card stat-card with-donut"><div id="ind-fonte-donut"></div><div><div class="label">Respostas com fonte encontrada</div><div class="value" id="ind-fonte">0</div><div class="sub" id="ind-fonte-sub">—</div></div></div>
-  </div>
-  <div class="ind-grid">
-    <div class="card" style="padding:22px 24px;">
-      <h3 style="font-size:16px;font-weight:900;margin:0 0 18px;">Abas mais consultadas</h3>
-      <div id="ind-bars"></div>
-    </div>
-    <div class="card" style="padding:22px 24px;">
-      <h3 style="font-size:16px;font-weight:900;margin:0 0 8px;">Perguntas mais frequentes</h3>
-      <div id="ind-faq"></div>
-    </div>
-  </div>
+  <section class="block" aria-labelledby="i1"><h2 class="sec-title" id="i1">Resumo</h2><dl class="kv-list" id="ind-summary"></dl></section>
+  <section class="block" aria-labelledby="i2"><h2 class="sec-title" id="i2">Temas mais consultados</h2><p class="sec-sub">Participação de cada etapa nas respostas encontradas no plano.</p><div id="ind-bars"></div></section>
+  <section class="block" aria-labelledby="i3"><h2 class="sec-title" id="i3">Perguntas mais frequentes</h2><div id="ind-faq"></div></section>
+  <section class="block" aria-labelledby="i4"><h2 class="sec-title" id="i4">Tipos de consulta</h2><p class="sec-sub">Como as perguntas se dividem entre buscar informação, tirar dúvida, interpretar e decidir.</p><div id="ind-types"></div></section>
+  <section class="block" aria-labelledby="i5"><h2 class="sec-title" id="i5">Oportunidades de melhoria</h2><p class="sec-sub" id="ind-gap-sub"></p><div id="ind-gaps"></div></section>
 </template>
 
 <template id="tpl-config">
@@ -358,15 +349,31 @@
   <div class="section-head" style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;">
     <div>
       <h1>Clientes &amp; Planos</h1>
-      <p>Abra o painel de um cliente para editar as abas, anexar material e processar o plano no lugar dele. Tudo o que você alterar fica salvo no plano desse cliente.</p>
+      <p>Crie acessos, abra o painel de um cliente ou gerencie o conteúdo do plano dele.</p>
     </div>
     <button class="btn blue" onclick="openNewClient()">+ Novo cliente</button>
   </div>
   <div class="card admin-table-wrap">
     <table class="admin-table">
-      <thead><tr><th>Cliente</th><th>Empresa</th><th>Plano</th><th>Abas</th><th>Última atualização</th><th>Consultas</th><th>Status</th><th></th></tr></thead>
+      <thead><tr><th scope="col">Cliente</th><th scope="col">Empresa</th><th scope="col">E-mail de acesso</th><th scope="col">Plano</th><th scope="col">Status</th><th scope="col">Último acesso</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead>
       <tbody id="admin-tbody"></tbody>
     </table>
+  </div>
+</template>
+
+<template id="tpl-conteudo">
+  <div class="section-head">
+    <h1>Conteúdo dos planos</h1>
+    <p>Gerencie as etapas de cada plano: descrição, objetivo, fonte, processamento e publicação.</p>
+  </div>
+  <div class="field ct-client-pick">
+    <label for="ct-client">Cliente</label>
+    <select id="ct-client" onchange="selectContentClient(this.value)"></select>
+  </div>
+  <div class="ct-summary" id="ct-summary"></div>
+  <div class="ct-layout">
+    <div class="ct-list" id="ct-list" role="list"></div>
+    <div class="ct-detail" id="ct-detail"></div>
   </div>
 </template>
 

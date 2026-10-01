@@ -111,7 +111,56 @@ function emptyAttachment(){
  * @param {object} attach Dados de anexo (opcional)
  */
 function makeTab(name, html, attach){
-  return {id:slugify(name), name, title:name, html:html||'', attachment:Object.assign(emptyAttachment(), attach||{})};
+  return {id:slugify(name), name, title:name, html:html||'', published:true, meta:emptyMeta(),
+          attachment:Object.assign(emptyAttachment(), attach||{})};
+}
+
+/** Metadados estruturados de uma etapa do plano. */
+function emptyMeta(){
+  return {shortDescription:'', whatIsIt:'', objective:'', keyPoints:[], suggestedQuestions:[], source:'', updatedAt:''};
+}
+/** Definição genérica de cada etapa padrão (vale para qualquer empresa; não traz fatos do cliente). */
+const STAGE_INFO = {
+  'Resumo Executivo':['Visão resumida do negócio e das principais conclusões do plano.','Permitir que qualquer leitor entenda o plano inteiro em poucos minutos.'],
+  'Empresa':['Apresentação da empresa: origem, sócios e proposta.','Contextualizar quem é a empresa e de onde ela parte.'],
+  'Produto/Serviço':['Descrição do que a empresa vende e de como entrega.','Deixar claro o que é ofertado ao cliente.'],
+  'Proposta de Valor':['Promessa central que diferencia a empresa para o cliente.','Explicar por que o cliente escolheria esta empresa.'],
+  'Mercado':['Análise do mercado em que a empresa atua.','Mostrar o tamanho e o comportamento do mercado.'],
+  'Público-Alvo':['Descrição de quem são os clientes que a empresa quer atender.','Orientar comunicação, produto e preço a partir de quem se quer atingir.'],
+  'Concorrentes':['Mapa dos concorrentes e de como eles se posicionam.','Comparar a empresa com as alternativas do cliente.'],
+  'Análise SWOT':['Forças, fraquezas, oportunidades e ameaças do negócio.','Dar uma visão equilibrada dos pontos internos e externos.'],
+  'Plano Financeiro':['Projeções de receita, custos e ponto de equilíbrio.','Mostrar se e quando o negócio se sustenta financeiramente.'],
+  'Riscos':['Riscos identificados para o negócio.','Antecipar o que pode dar errado para poder se preparar.'],
+  'Metas':['Metas definidas para o negócio.','Dar direção e critérios de acompanhamento.'],
+  'Estratégia de Marketing':['Plano de comunicação e de atração de clientes.','Definir como a empresa chega até o público-alvo.'],
+  'Investimento Inicial':['Valor e destino do investimento para abrir o negócio.','Mostrar quanto é preciso investir e em quê.'],
+  'VPL, TIR e Payback':['Indicadores de retorno do investimento.','Avaliar se o investimento compensa e em quanto tempo volta.'],
+  'Análise de Sensibilidade':['Como os resultados mudam em cenários diferentes.','Mostrar a resistência do plano a variações.']
+};
+/** Preenche metadados de uma etapa já escrita com a definição genérica da etapa. Pontos principais só vêm da IA ou da edição manual. */
+function deriveMeta(tab){
+  const m=emptyMeta();
+  const info=STAGE_INFO[tab.name];
+  if(info){ m.whatIsIt=info[0]; m.objective=info[1]; }
+  m.source=(tab.attachment&&(tab.attachment.pdfName||tab.attachment.slideLink))||'';
+  m.updatedAt=(tab.attachment&&tab.attachment.processedAt)||'';
+  return m;
+}
+/** Remove tudo que não esteja na lista de tags permitidas (HTML vindo da IA). */
+function sanitizeHtml(html){
+  const ALLOWED=new Set(['P','B','STRONG','UL','OL','LI','H4','TABLE','THEAD','TBODY','TR','TH','TD','BR']);
+  const doc=new DOMParser().parseFromString('<body>'+String(html||'')+'</body>','text/html');
+  (function walk(node){
+    [...node.childNodes].forEach(ch=>{
+      if(ch.nodeType===8){ ch.remove(); return; }
+      if(ch.nodeType!==1) return;
+      if(['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','LINK','META'].includes(ch.tagName)){ ch.remove(); return; }
+      walk(ch);
+      if(ALLOWED.has(ch.tagName)){ [...ch.attributes].forEach(a=>ch.removeAttribute(a.name)); }
+      else { while(ch.firstChild) ch.parentNode.insertBefore(ch.firstChild,ch); ch.remove(); }
+    });
+  })(doc.body);
+  return doc.body.innerHTML;
 }
 
 const DEFAULT_TAB_NAMES = [
@@ -152,10 +201,15 @@ function demoTabs(){
     tab.attachment.extracted = 1;
     tab.attachment.processedAt = '28 ago 2026';
     tab.attachment.knowledge = stripHtml(h);
+    tab.meta = deriveMeta(tab);
     return tab;
   });
   t[0].attachment.pdfName = '[THE OFFICE] SSA EV (1).pdf';
   t[0].attachment.extracted = 2;
+  t[0].meta.source = t[0].attachment.pdfName;
+  const sq = {'Público-Alvo':['Quem é o nosso cliente ideal?'],'Plano Financeiro':['Qual é o ponto de equilíbrio?'],
+    'Concorrentes':['Quem são os nossos principais concorrentes?'],'Riscos':['Quais são os nossos principais riscos?']};
+  t.forEach(x=>{ if(sq[x.name]) x.meta.suggestedQuestions=sq[x.name]; });
   return t;
 }
 
@@ -165,7 +219,12 @@ let clients = [
    status:'Processado', lastLogin:'08 set 2026, 09:14', consultas:47, answered:43, asked:47,
    tabs:demoTabs(), tabHits:{'plano-financeiro':14,'concorrentes':11,'estrategia-de-marketing':9,'publico-alvo':8,'riscos':5},
    faq:[{q:'Qual o ponto de equilíbrio?',n:7},{q:'Quem são os concorrentes?',n:6},{q:'Qual é o público-alvo?',n:5},{q:'Quais os principais riscos?',n:4}],
-   scope:{}, conversations:[{id:1,title:'Análise financeira',messages:[]},{id:2,title:'Concorrência',messages:[]}], activeConvId:1},
+   scope:{}, conversations:[{id:1,title:'Análise financeira',messages:[]},{id:2,title:'Concorrência',messages:[]}], activeConvId:1,
+   queryTypes:{'Informação':22,'Dúvida':11,'Interpretação':9,'Decisão':5},
+   unanswered:[{q:'Qual a política de cancelamento de planos?',theme:'Produto/Serviço'},
+     {q:'Existe previsão de parceria com academias?',theme:'Estratégia de Marketing'},
+     {q:'Qual o custo de aquisição por canal?',theme:'Estratégia de Marketing'},
+     {q:'Como será a contratação de novos professores?',theme:'Empresa'}]},
   {id:2, name:'Rafael Matos', email:'rafael@graoecia.com.br', company:'Cafeteria Grão & Cia',
    segment:'Alimentação', version:1, planFile:'plano-graoecia.docx', updated:'02 set 2026',
    status:'Em processamento', lastLogin:'05 set 2026, 16:02', consultas:12, answered:9, asked:12,
@@ -207,7 +266,7 @@ function sessionUser(){
 function tabs(){ return C().tabs; }
 function inScope(tab){
   const s = C().scope||{};
-  return isAdmin ? true : (s[tab.id]!==false);
+  return isAdmin ? true : (s[tab.id]!==false && tab.published!==false);
 }
 function visibleTabs(){ return tabs().filter(inScope); }
 let activeTabId = null;
@@ -318,6 +377,7 @@ const pageMeta={
   indicadores:{title:'Indicadores'},
   config:{title:'Configurações'},
   admin:{title:'Clientes & Planos'},
+  conteudo:{title:'Conteúdo dos planos'},
 };
 function toggleSidebar(force){
   const sb=document.getElementById('sidebar'), sc=document.getElementById('sidebar-scrim');
@@ -325,7 +385,7 @@ function toggleSidebar(force){
   sb.classList.toggle('open', open);
   sc.style.display = open ? 'block' : 'none';
 }
-const ADMIN_VIEWS=['admin','config'];
+const ADMIN_VIEWS=['admin','config','conteudo'];
 function go(view){
   // só a consultoria entra nas telas administrativas
   if(ADMIN_VIEWS.includes(view) && !isAdmin) view='dashboard';
@@ -339,7 +399,7 @@ function go(view){
   document.getElementById('page-title').textContent = pageMeta[view].title;
   document.getElementById('impersonation-bar').classList.toggle('hidden', !(isAdmin && !ADMIN_VIEWS.includes(view)));
   applyRole();
-  document.getElementById('page-crumb').textContent = view==='admin'
+  document.getElementById('page-crumb').textContent = (view==='admin'||view==='conteudo')
     ? 'Administração · Empresa JR'
     : C().company + (C().version ? ' · v'+C().version : '');
   if(view==='dashboard') initDashboard();
@@ -348,6 +408,7 @@ function go(view){
   if(view==='indicadores') initIndicadores();
   if(view==='config') initConfig();
   if(view==='admin') renderAdminTable();
+  if(view==='conteudo') initConteudo();
   if(view!=='indicadores') stopIndicadores();
   applyTheme(currentTheme);
   renderAiBadge();
@@ -384,14 +445,14 @@ function renderAiBadge(){
  * @param {Array} [tools] ferramentas opcionais (ex: web_search)
  * @returns {Promise<string>} texto concatenado das respostas
  */
-async function callClaude(messages, system, tools){
+async function callClaude(messages, system, tools, maxTokens){
   const headers={'Content-Type':'application/json'};
   if(apiKey){
     headers['x-api-key']=apiKey;
     headers['anthropic-version']='2023-06-01';
     headers['anthropic-dangerous-direct-browser-access']='true';
   }
-  const body={model:AI_MODEL, max_tokens:1000, messages};
+  const body={model:AI_MODEL, max_tokens:maxTokens||1000, messages};
   if(system) body.system=system;
   if(tools) body.tools=tools;
   const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -608,14 +669,13 @@ async function onPdfSelected(input){
   if(!a.pdfText){
     try{ a.pdfData = a.pdfData || await fileToBase64(file); }catch(_){}
   }
-  renderAttachPanel();
+  refreshTabViews();
 }
 function saveSlideLink(){
   const el=document.getElementById('slide-link-input');
   currentTab().attachment.slideLink = el.value.trim();
   currentTab().attachment.error='';
-  renderAttachPanel();
-  renderTabList();
+  refreshTabViews();
 }
 
 /* --- Processar com IA --------------------------------------- */
@@ -643,14 +703,25 @@ async function processDoc(){
     a.knowledge = stripHtml(result.html);
     a.processedAt = today();
     a.error = usedAI ? '' : (result.note||'');
+    // só sobrescreve o que a IA realmente trouxe; edições manuais de outros campos ficam
+    const rm = result.meta || {};
+    tab.meta = Object.assign(emptyMeta(), tab.meta||{});
+    ['shortDescription','whatIsIt','objective'].forEach(k=>{ if(rm[k]) tab.meta[k]=rm[k]; });
+    ['keyPoints','suggestedQuestions'].forEach(k=>{ if(rm[k] && rm[k].length) tab.meta[k]=rm[k]; });
+    tab.meta.source = a.pdfName || a.slideLink || tab.meta.source;
+    tab.meta.updatedAt = a.processedAt;
+    tab.published = true;
     const c=C();
     c.updated = today();
     c.status = 'Processado';
     if(a.pdfName) c.planFile = a.pdfName;
   }
-  renderAttachPanel();
-  renderTabList();
-  renderTabContent();
+  refreshTabViews();
+}
+/** Redesenha tudo que mostra a aba atual (plano e área de conteúdo). */
+function refreshTabViews(){
+  renderAttachPanel(); renderTabList(); renderTabContent();
+  if(currentView==='conteudo') renderContentAdmin();
 }
 
 /**
@@ -668,8 +739,11 @@ async function aiAnalyzeTab(tab){
     'Use somente informações presentes no material. Não invente números, nomes ou fatos.',
     'Se o material não trouxer informação sobre a aba, diga isso explicitamente no texto.',
     'Responda SOMENTE com um objeto JSON válido, sem markdown e sem comentários, no formato:',
-    '{"titulo":"...","html":"...","sections":["...","..."]}',
+    '{"titulo":"...","descricaoCurta":"...","oQueE":"...","objetivo":"...","html":"...","pontosPrincipais":["..."],"perguntasSugeridas":["..."],"sections":["..."]}',
     'Em "html" use apenas as tags <p>, <b>, <ul>, <ol>, <li>, <h4> e <table>/<tr>/<th>/<td>. Entre 150 e 450 palavras.',
+    '"descricaoCurta": uma frase. "oQueE": o que esta etapa do plano trata. "objetivo": para que ela serve neste plano.',
+    '"pontosPrincipais": de 3 a 5 itens extraídos do material. "perguntasSugeridas": de 2 a 4 perguntas que o texto consegue responder.',
+    'Se o material não sustentar um campo, devolva "" ou [] nesse campo. Nunca preencha com suposições.',
     'Em "sections" liste os títulos das seções que você identificou no material.'
   ].join(' ');
 
@@ -691,10 +765,14 @@ async function aiAnalyzeTab(tab){
     content = instr;
   }
   const tools = (!a.pdfText && !a.pdfData && a.slideLink) ? [{type:'web_search_20250305', name:'web_search'}] : null;
-  const raw = await callClaude([{role:'user', content}], system, tools);
+  const raw = await callClaude([{role:'user', content}], system, tools, 3000);
   const json = parseJson(raw);
   if(!json.html) throw new Error('Resposta da IA sem conteúdo.');
-  return {titulo: json.titulo || tab.name, html: json.html, sections: Array.isArray(json.sections)?json.sections:[]};
+  const list = v=>Array.isArray(v)?v.map(x=>String(x).trim()).filter(Boolean).slice(0,6):[];
+  return {titulo: json.titulo || tab.name, html: sanitizeHtml(json.html), sections: Array.isArray(json.sections)?json.sections:[],
+    meta:{shortDescription:String(json.descricaoCurta||'').trim(), whatIsIt:String(json.oQueE||'').trim(),
+          objective:String(json.objetivo||'').trim(), keyPoints:list(json.pontosPrincipais),
+          suggestedQuestions:list(json.perguntasSugeridas)}};
 }
 
 /**
@@ -767,28 +845,35 @@ function renderTabList(){
   });
   wrap.appendChild(inner);
 }
+function stageStatus(t){
+  const a=t.attachment, src=!!(a.pdfName||a.slideLink);
+  if(a.processed && t.published!==false) return {label:'Publicado', cls:'teal'};
+  if(a.processed) return {label:'Não publicado', cls:'amber'};
+  if(src) return {label:'Aguardando processamento', cls:'amber'};
+  return {label:'Sem material', cls:'gray'};
+}
+function stageSection(title, inner){ return `<section class="stage-sec"><h3>${esc(title)}</h3>${inner}</section>`; }
 function renderTabContent(){
   const wrap=document.getElementById('plan-content-wrap');
   if(!wrap) return;
   const t=currentTab();
   if(!t){ wrap.innerHTML=''; return; }
-  const a=t.attachment;
+  const a=t.attachment, m=Object.assign(emptyMeta(), t.meta||{});
+  const head=`<div class="eyebrow">Plano de negócios · ${esc(C().company)}</div><h2>${esc(t.title||t.name)}</h2>`;
   if(!isAdmin && !a.processed && !a.knowledge){
-    wrap.innerHTML=`<div class="card plan-content"><div class="eyebrow">Plano de negócios · ${esc(C().company)}</div>
-      <h2>${esc(t.title||t.name)}</h2>
-      <p class="empty-note">Esta etapa ainda não foi publicada pela consultoria. Assim que estiver disponível, ela aparece aqui.</p></div>`;
+    wrap.innerHTML=`<article class="card plan-content">${head}<p class="empty-note">Esta etapa ainda não foi publicada pela consultoria. Assim que estiver disponível, ela aparece aqui.</p></article>`;
     return;
   }
-  const meta = isAdmin
-    ? (a.processed ? 'Extraído pela IA · atualizado em ' + (a.processedAt || C().updated)
-                   : 'Sem conteúdo processado · anexe o PDF ou o link desta aba acima')
-    : 'Atualizado em ' + (a.processedAt || C().updated);
-  wrap.innerHTML=`<div class="card plan-content">
-      <div class="eyebrow">Plano de Negócios · ${esc(C().company)}</div>
-      <h2>${esc(t.title||t.name)}</h2>
-      <div class="meta">${esc(meta)}</div>
-      <div class="body-text">${t.html || emptyTabHtml()}</div>
-    </div>`;
+  const upd = a.processedAt || m.updatedAt || C().updated;
+  let parts='';
+  if(m.shortDescription && m.shortDescription!==m.whatIsIt) parts+=`<p class="stage-lead">${esc(m.shortDescription)}</p>`;
+  if(m.whatIsIt) parts+=stageSection('O que é esta etapa?',`<p>${esc(m.whatIsIt)}</p>`);
+  if(m.objective) parts+=stageSection('Objetivo',`<p>${esc(m.objective)}</p>`);
+  parts+=stageSection('Conteúdo',`<div class="body-text">${t.html || emptyTabHtml()}</div>`);
+  if(m.keyPoints.length) parts+=stageSection('Principais pontos',`<ul class="stage-points">${m.keyPoints.map(k=>`<li>${esc(k)}</li>`).join('')}</ul>`);
+  const adminNote = isAdmin
+    ? `<p class="stage-admin-note">${a.processed?'Extraído pela IA · ':''}${t.published===false?'Rascunho: o cliente ainda não vê esta etapa. ':''}${a.processed?'':'Sem conteúdo processado · anexe o PDF ou o link desta aba acima.'}</p>` : '';
+  wrap.innerHTML=`<article class="card plan-content">${head}${adminNote}${parts}<p class="stage-updated">Atualizado em ${esc(upd)}</p></article>`;
 }
 function planSearch(term){
   const wrap=document.getElementById('plan-content-wrap');
@@ -883,9 +968,9 @@ function initChat(){
   const c=C();
   const processed=c.tabs.filter(t=>t.attachment.processed).length;
   const sub=document.getElementById('chat-head-sub');
-  if(sub) sub.textContent = processed
-    ? 'Responde a partir das ' + processed + ' aba(s) processada(s) do plano da ' + c.company + '.'
-    : 'Nenhuma aba processada ainda. Anexe o material em Plano de Negócios e clique em "Processar com IA".';
+  if(sub) sub.textContent = (isAdmin && !processed)
+    ? 'Nenhuma aba processada ainda. Anexe o material em Plano de negócios e clique em "Processar com IA".'
+    : 'Faça uma pergunta sobre seu Plano de Negócios.';
   if(!convs().length){ convs().push({id:Date.now(), title:'Nova conversa', messages:[]}); }
   if(!currentConv()) c.activeConvId = convs()[0].id;
   renderConvList();
@@ -928,6 +1013,12 @@ function newConversation(){
   C().activeConvId=id;
   renderConvList(); renderThread();
 }
+/** Perguntas sugeridas: as das etapas publicadas; senão, as padrão. */
+function chatSuggestions(){
+  const own=[]; visibleTabs().forEach(t=>((t.meta&&t.meta.suggestedQuestions)||[]).forEach(q=>{ if(!own.includes(q)) own.push(q); }));
+  const base=['Qual é o nosso público-alvo?','Quais são os nossos principais riscos?','Qual é o ponto de equilíbrio?','Quem são os nossos principais concorrentes?'];
+  return (own.length>=2 ? own : base).slice(0,4);
+}
 function renderThread(){
   const thread=document.getElementById('chat-thread');
   if(!thread) return;
@@ -939,11 +1030,7 @@ function renderThread(){
         <div class="ring"><img src="${LOGO_SRC}" alt="" style="width:34px;height:34px;border-radius:8px;"></div>
         <h3>Posso ajudar a consultar e interpretar o Plano de Negócios da ${esc(C().company)}.</h3>
         <p>Pergunte sobre público-alvo, concorrentes, riscos, metas ou qualquer outra aba do plano. Se a informação não estiver no plano, eu digo isso em vez de inventar.</p>
-        <div class="suggest-grid">
-          <button class="suggest-chip" onclick="askFromSuggestion('Quais são nossos três principais riscos?')"><span>Quais são nossos três principais riscos?</span><span class="arrow">›</span></button>
-          <button class="suggest-chip" onclick="askFromSuggestion('Qual é o nosso público-alvo?')"><span>Qual é o nosso público-alvo?</span><span class="arrow">›</span></button>
-          <button class="suggest-chip" onclick="askFromSuggestion('Qual é o ponto de equilíbrio do negócio?')"><span>Qual é o ponto de equilíbrio do negócio?</span><span class="arrow">›</span></button>
-        </div>
+        <div class="suggest-grid">${chatSuggestions().map(q=>`<button class="suggest-chip" onclick="askFromSuggestion(${JSON.stringify(q).replace(/"/g,'&quot;')})"><span>${esc(q)}</span><span class="arrow" aria-hidden="true">›</span></button>`).join('')}</div>
       </div>`;
     return;
   }
@@ -1011,7 +1098,8 @@ async function aiAnswer(question, conv){
     'Se a resposta não estiver no plano, responda que a informação não está no plano e sugira o que seria necessário registrar.',
     'Quando a resposta exigir interpretar ou comparar informações do plano em vez de citá-las, marque "inferencia" como true.',
     'Responda SOMENTE com JSON válido, sem markdown, no formato:',
-    '{"html":"...","fonte":"nome da aba","inferencia":false}',
+    '{"html":"...","fonte":"nome da aba","inferencia":false,"tipo":"Informação"}',
+    '"tipo" classifica a pergunta como exatamente uma destas: Informação, Dúvida, Interpretação ou Decisão. Se a resposta não estiver no plano, deixe "fonte" vazio.',
     'Em "html" use apenas <p>, <b>, <ul>, <ol>, <li> e <table>/<tr>/<th>/<td>. Seja direto: no máximo 200 palavras.'
   ].join(' ');
   const history = conv.messages.slice(-6,-1).map(m=>({role: m.role==='ai'?'assistant':'user', content: stripHtml(m.html).slice(0,600)}));
@@ -1023,7 +1111,8 @@ async function aiAnswer(question, conv){
   ];
   const raw = await callClaude(msgs, system);
   const j = parseJson(raw);
-  return {html: j.html || '<p>Não consegui formular a resposta.</p>', source: j.fonte || '', inference: !!j.inferencia};
+  return {html: sanitizeHtml(j.html) || '<p>Não consegui formular a resposta.</p>', source: j.fonte || '', inference: !!j.inferencia,
+          type: QUERY_TYPES.includes(j.tipo) ? j.tipo : ''};
 }
 function localAnswer(question){
   const q=question.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -1041,10 +1130,38 @@ function localAnswer(question){
   }
   return {html: best.t.html, source: best.t.name};
 }
+const QUERY_TYPES=['Informação','Dúvida','Interpretação','Decisão'];
+/** Classificação simples por palavras-chave, usada quando a IA não informa o tipo. */
+function classifyQuery(q){
+  const t=String(q||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if(/\b(devo|devemos|vale a pena|recomend|deveria|priorizar|melhor opcao|escolher)\b/.test(t)) return 'Decisão';
+  if(/\b(resum|compar|explic|significa|interpret|o que isso|impacto|por que)\b/.test(t)) return 'Interpretação';
+  if(/\b(como|sera que|posso|consigo|e possivel|duvida)\b/.test(t)) return 'Dúvida';
+  return 'Informação';
+}
+/** Tema (etapa) mais próximo de uma pergunta, pelo nome e pelo começo do texto da etapa. */
+function guessTheme(q){
+  const norm=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const words=norm(q).split(/[^a-z0-9]+/).filter(w=>w.length>3);
+  let best=null, bs=0;
+  tabs().forEach(t=>{
+    const hay=norm(t.name)+' '+norm((t.attachment.knowledge||stripHtml(t.html)).slice(0,400));
+    const sc=words.reduce((n,w)=>n+(norm(t.name).includes(w)?3:(hay.includes(w)?1:0)),0);
+    if(sc>bs){ bs=sc; best=t; }
+  });
+  return best ? best.name : 'Sem tema definido';
+}
 function registerQuery(question, answer){
   const c=C();
   c.consultas++; c.asked++;
+  c.queryTypes=c.queryTypes||{}; c.unanswered=c.unanswered||[];
+  const ty=answer.type||classifyQuery(question);
+  c.queryTypes[ty]=(c.queryTypes[ty]||0)+1;
   if(answer.source) c.answered++;
+  else {
+    c.unanswered.unshift({q:question.trim().slice(0,120), theme:guessTheme(question)});
+    c.unanswered=c.unanswered.slice(0,30);
+  }
   if(answer.source){
     const t=visibleTabs().find(x=>answer.source.indexOf(x.name)>=0);
     if(t) c.tabHits[t.id]=(c.tabHits[t.id]||0)+1;
@@ -1059,42 +1176,52 @@ function registerQuery(question, answer){
    10. INDICADORES
    ============================================================ */
 let indInterval=null;
-function initIndicadores(){ renderIndicadores(); stopIndicadores(); indInterval=setInterval(renderIndicadores, 30000); }
+function initIndicadores(){ renderIndicadores(); stopIndicadores(); }
 function stopIndicadores(){ if(indInterval){ clearInterval(indInterval); indInterval=null; } }
+function pct(n,t){ return t ? Math.round(n/t*100) : 0; }
 function renderIndicadores(){
-  const el=document.getElementById('ind-consultas');
-  if(!el) return;
+  const sum=document.getElementById('ind-summary');
+  if(!sum) return;
   const c=C();
-  const processed=c.tabs.filter(t=>t.attachment.processed).length;
-  const rate=c.asked ? Math.round((c.answered/c.asked)*100) : 0;
-  el.textContent=c.consultas;
-  document.getElementById('ind-consultas-sub').textContent=c.conversations.length+' conversa(s) neste plano';
-  document.getElementById('ind-abas').textContent=processed+'/'+c.tabs.length;
-  document.getElementById('ind-abas-sub').textContent=(c.tabs.length-processed)+' aba(s) sem conteúdo processado';
-  document.getElementById('ind-fonte').textContent=c.answered+' de '+c.asked;
-  document.getElementById('ind-fonte-sub').textContent=(c.asked-c.answered)+' pergunta(s) sem resposta no plano';
-  document.getElementById('ind-fonte-donut').innerHTML=donutSvg(rate,'Respostas com fonte','var(--teal)');
+  const semResp=Math.max(0,(c.asked||0)-(c.answered||0));
+  const rows=[
+    ['Consultas realizadas', String(c.consultas||0)],
+    ['Respostas encontradas no plano', c.asked ? c.answered+' de '+c.asked+' ('+pct(c.answered,c.asked)+'%)' : '—'],
+    ['Perguntas sem resposta no plano', c.asked ? semResp+' ('+pct(semResp,c.asked)+'%)' : '—']
+  ];
+  sum.innerHTML=rows.map(r=>`<div class="kv"><dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd></div>`).join('');
 
-  const hits=Object.entries(c.tabHits).map(([id,n])=>{
-    const t=c.tabs.find(x=>x.id===id);
-    return {label: t?t.name:id, val:n};
+  // temas: participação de cada etapa nas respostas com fonte
+  const hits=Object.entries(c.tabHits||{}).map(([id,n])=>{
+    const t=c.tabs.find(x=>x.id===id); return {label:t?t.name:id, val:n};
   }).sort((a,b)=>b.val-a.val).slice(0,6);
+  const total=Object.values(c.tabHits||{}).reduce((a,b)=>a+b,0);
   const bars=document.getElementById('ind-bars');
-  if(hits.length){
-    const max=Math.max(...hits.map(h=>h.val));
-    bars.innerHTML=hits.map(h=>`
-      <div class="bar-row"><div class="lbl">${esc(h.label)}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(h.val/max*100)}%;"></div></div>
-      <div class="val">${h.val}</div></div>`).join('');
-  } else {
-    bars.innerHTML='<p style="font-size:13.5px;color:var(--muted);margin:0;">Ainda não há consultas registradas neste plano. As abas mais perguntadas aparecem aqui.</p>';
-  }
+  bars.innerHTML = hits.length
+    ? hits.map(h=>`<div class="bar-row"><div class="lbl">${esc(h.label)}</div>
+        <div class="bar-track" role="img" aria-label="${esc(h.label)}: ${pct(h.val,total)}%"><div class="bar-fill" style="width:${pct(h.val,total)}%;"></div></div>
+        <div class="val">${pct(h.val,total)}%</div></div>`).join('')
+    : '<p class="empty-note" style="margin:0;">Ainda não há consultas registradas. Os temas mais perguntados aparecem aqui.</p>';
+
   const faq=document.getElementById('ind-faq');
   faq.innerHTML = c.faq.length
-    ? c.faq.map(f=>`<div class="faq-item"><span>${esc(f.q)}</span><span class="q-count">×${f.n}</span></div>`).join('')
-    : '<p style="font-size:13.5px;color:var(--muted);margin:8px 0 0;">Nenhuma pergunta registrada ainda.</p>';
-  const now=new Date();
-  document.getElementById('ind-last-updated').textContent='Atualizado às '+now.toLocaleTimeString('pt-BR');
+    ? c.faq.map(f=>`<div class="faq-item"><span>${esc(f.q)}</span><span class="q-count">${f.n}×</span></div>`).join('')
+    : '<p class="empty-note" style="margin:0;">Nenhuma pergunta registrada ainda.</p>';
+
+  const qt=c.queryTypes||{}, qtotal=QUERY_TYPES.reduce((n,k)=>n+(qt[k]||0),0);
+  document.getElementById('ind-types').innerHTML = qtotal
+    ? QUERY_TYPES.map(k=>`<div class="bar-row"><div class="lbl">${k}</div>
+        <div class="bar-track" role="img" aria-label="${k}: ${pct(qt[k]||0,qtotal)}%"><div class="bar-fill" style="width:${pct(qt[k]||0,qtotal)}%;"></div></div>
+        <div class="val">${pct(qt[k]||0,qtotal)}%</div></div>`).join('')
+    : '<p class="empty-note" style="margin:0;">Sem consultas para classificar ainda.</p>';
+
+  const gaps=c.unanswered||[];
+  document.getElementById('ind-gap-sub').textContent = gaps.length
+    ? gaps.length+(gaps.length===1?' pergunta não encontrou':' perguntas não encontraram')+' informação suficiente no plano. Elas indicam o que vale detalhar nas próximas entregas.'
+    : 'Todas as perguntas feitas até agora foram respondidas a partir do plano.';
+  document.getElementById('ind-gaps').innerHTML = gaps.length
+    ? '<div class="gap-list">'+gaps.slice(0,10).map(g=>`<div class="gap-item"><span>${esc(g.q)}</span><span class="gap-theme">${esc(g.theme)}</span></div>`).join('')+'</div>'
+    : '';
 }
 
 /* ============================================================
@@ -1137,26 +1264,22 @@ function renderAdminTable(){
   if(!tb) return;
   tb.innerHTML='';
   clients.forEach(c=>{
-    const done=c.tabs.filter(t=>t.attachment.processed).length;
     const pill=c.suspended?'amber':(c.status==='Processado'?'teal':(c.status==='Pendente'?'amber':'blue'));
     const stLabel=c.suspended?'Acesso suspenso':c.status;
     const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td><div class="client-cell"><div class="mini-avatar">${esc(initialsOf(c.name))}</div>
-        <span class="nm"><b>${esc(c.name)}</b><span>${esc(c.email)}</span></span></div></td>
+      <td><div class="client-cell"><div class="mini-avatar" aria-hidden="true">${esc(initialsOf(c.name))}</div>
+        <span class="nm"><b>${esc(c.name)}</b></span></div></td>
       <td>${esc(c.company)}</td>
+      <td>${esc(c.email)}</td>
       <td>${c.version?'v'+c.version+' · ':''}${esc(c.planFile)}</td>
-      <td>${done}/${c.tabs.length}</td>
-      <td>${esc(c.updated)}</td>
-      <td>${c.consultas}</td>
       <td><span class="pill ${pill}">${esc(stLabel)}</span></td>
+      <td>${esc(c.lastLogin)}</td>
       <td><div class="row-actions">
-        <button class="btn blue" onclick="event.stopPropagation();openClientWorkspace(${c.id})">Abrir painel</button>
-        <button class="btn" onclick="event.stopPropagation();openClientAccess(${c.id})">Acesso</button>
+        <button class="btn blue" onclick="openClientWorkspace(${c.id})">Abrir painel</button>
+        <button class="btn" onclick="openClientAccess(${c.id})">Gerenciar acesso</button>
+        <button class="btn" onclick="openContentFor(${c.id})">Gerenciar conteúdo</button>
       </div></td>`;
-    tr.style.cursor='pointer';
-    tr.title='Abrir o painel de '+c.name;
-    tr.onclick=()=>openClientWorkspace(c.id);
     tb.appendChild(tr);
   });
 }
@@ -1186,6 +1309,91 @@ function createClient(){
   renderAdminTable();
   persist();
   toast('Acesso criado para ' + name + '.','ok');
+}
+
+/* ============================================================
+   12b. ADMIN — CONTEÚDO DOS PLANOS
+   ============================================================ */
+function openContentFor(id){ if(!isAdmin) return; activeClientId=id; activeTabId=null; updateShell(); go('conteudo'); }
+function initConteudo(){
+  const sel=document.getElementById('ct-client');
+  sel.innerHTML=clients.map(c=>`<option value="${c.id}">${esc(c.company)} — ${esc(c.name)}</option>`).join('');
+  sel.value=String(activeClientId);
+  renderContentAdmin();
+}
+function selectContentClient(id){ activeClientId=Number(id); activeTabId=null; updateShell(); renderContentAdmin(); }
+function renderContentAdmin(){
+  const list=document.getElementById('ct-list');
+  if(!list) return;
+  const c=C(), all=c.tabs;
+  const done=all.filter(t=>t.attachment.processed).length;
+  document.getElementById('ct-summary').innerHTML =
+    `<b>${esc(c.company)}</b> · ${all.length} seções · ${done} processadas · última atualização: ${esc(c.updated||'—')}`;
+  if(!all.find(t=>t.id===activeTabId)) activeTabId = all[0] ? all[0].id : null;
+  list.innerHTML = all.map(t=>{
+    const st=stageStatus(t);
+    return `<button type="button" role="listitem" class="ct-row${t.id===activeTabId?' active':''}" onclick="selectContentTab('${t.id}')"${t.id===activeTabId?' aria-current="true"':''}>
+      <span class="nm">${esc(t.name)}</span><span class="pill ${st.cls}">${st.label}</span></button>`;
+  }).join('');
+  renderContentDetail();
+}
+function selectContentTab(id){ activeTabId=id; renderContentAdmin(); }
+function renderContentDetail(){
+  const box=document.getElementById('ct-detail');
+  if(!box) return;
+  const t=currentTab();
+  if(!t){ box.innerHTML='<p class="empty-note">Este plano ainda não tem seções.</p>'; return; }
+  const a=t.attachment, m=Object.assign(emptyMeta(), t.meta||{}), st=stageStatus(t);
+  const hasSrc=!!(a.pdfName||a.slideLink);
+  box.innerHTML=`
+    <div class="ct-detail-head"><h2>${esc(t.name)}</h2><span class="pill ${st.cls}">${st.label}</span></div>
+    <p class="ct-meta">Atualizado em ${esc(a.processedAt||m.updatedAt||'—')}</p>
+    ${a.error?`<div class="form-error" role="alert">${esc(a.error)}</div>`:''}
+    <div class="field"><label for="ct-title">Título exibido ao cliente</label><input id="ct-title" type="text" value="${esc(t.title||t.name)}"></div>
+    <div class="field"><label for="ct-short">Descrição curta</label><input id="ct-short" type="text" value="${esc(m.shortDescription)}"></div>
+    <div class="field"><label for="ct-what">O que é esta etapa?</label><textarea id="ct-what" rows="2">${esc(m.whatIsIt)}</textarea></div>
+    <div class="field"><label for="ct-obj">Objetivo</label><textarea id="ct-obj" rows="2">${esc(m.objective)}</textarea></div>
+    <div class="field"><label for="ct-points">Principais pontos <span class="hint">(um por linha)</span></label><textarea id="ct-points" rows="4">${esc(m.keyPoints.join('\n'))}</textarea></div>
+    <div class="field"><label for="ct-questions">Perguntas sugeridas <span class="hint">(uma por linha)</span></label><textarea id="ct-questions" rows="3">${esc(m.suggestedQuestions.join('\n'))}</textarea></div>
+    <div class="ct-actions"><button class="btn blue" onclick="saveContentMeta()">Salvar metadados</button></div>
+
+    <h3 class="ct-sub">Fonte</h3>
+    <div class="attach-file-row">
+      <span class="fn ${a.pdfName?'':'empty'}">${a.pdfName?esc(a.pdfName):'Nenhum PDF anexado'}</span>
+      <button class="btn" onclick="triggerPdfUpload()">${a.pdfName?'Substituir fonte':'Anexar PDF'}</button>
+    </div>
+    <input type="file" id="pdf-file-input" accept=".pdf" class="hidden" onchange="onPdfSelected(this)" aria-label="Arquivo PDF desta etapa">
+    <div class="attach-link-row" style="margin-top:10px;">
+      <input type="text" id="slide-link-input" placeholder="Link (slide, doc, planilha...)" aria-label="Link da fonte" value="${esc(a.slideLink)}">
+      <button class="btn" onclick="saveSlideLink()">Salvar link</button>
+    </div>
+    <div class="ct-actions">
+      <button class="btn yellow" onclick="processDoc()" ${hasSrc?'':'disabled'}>${a.processed?'Reprocessar com IA':'Processar com IA'}</button>
+      <button class="btn" onclick="togglePublish()" ${a.processed?'':'disabled'}>${t.published===false?'Publicar para o cliente':'Despublicar'}</button>
+      <button class="btn" onclick="openClientWorkspace(${C().id})">Ver como o cliente</button>
+    </div>
+    <div id="attach-status" class="ct-status" aria-live="polite"></div>
+
+    <h3 class="ct-sub">Conteúdo atual</h3>
+    <div class="body-text ct-preview">${t.html||emptyTabHtml()}</div>`;
+}
+function saveContentMeta(){
+  if(!isAdmin) return;
+  const t=currentTab(); if(!t) return;
+  const v=id=>document.getElementById(id).value.trim();
+  const lines=id=>v(id).split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  t.title=v('ct-title')||t.name;
+  t.meta=Object.assign(emptyMeta(), t.meta||{}, {shortDescription:v('ct-short'), whatIsIt:v('ct-what'), objective:v('ct-obj'),
+    keyPoints:lines('ct-points'), suggestedQuestions:lines('ct-questions')});
+  persist(); renderContentAdmin();
+  toast('Metadados salvos.','ok');
+}
+function togglePublish(){
+  if(!isAdmin) return;
+  const t=currentTab(); if(!t) return;
+  t.published = (t.published===false);
+  persist(); renderContentAdmin();
+  toast(t.published ? 'Etapa publicada para o cliente.' : 'Etapa retirada da visão do cliente.','ok');
 }
 
 let accessTab='login', accessClient=null;
@@ -1261,7 +1469,7 @@ let storageWorks = (function(){
 function cleanTabForStorage(t){
   const a=t.attachment||{};
   return {
-    id:t.id, name:t.name, title:t.title, html:t.html,
+    id:t.id, name:t.name, title:t.title, html:t.html, published:t.published!==false, meta:t.meta||emptyMeta(),
     attachment:{
       pdfName:a.pdfName||'', pdfText:(a.pdfText||'').slice(0,20000), pdfData:null,
       slideLink:a.slideLink||'', processed:!!a.processed, extracted:a.extracted||0,
@@ -1283,7 +1491,8 @@ function snapshot(){
       lastLogin:c.lastLogin, consultas:c.consultas, asked:c.asked, answered:c.answered,
       tabs:(c.tabs||[]).map(cleanTabForStorage),
       conversations:c.conversations||[], activeConvId:c.activeConvId,
-      scope:c.scope||{}, tabHits:c.tabHits||{}, faq:c.faq||[]
+      scope:c.scope||{}, tabHits:c.tabHits||{}, faq:c.faq||[],
+      queryTypes:c.queryTypes||{}, unanswered:c.unanswered||[]
     }))
   };
 }
@@ -1307,10 +1516,12 @@ function restore(){
       tab.id = t.id || tab.id;
       tab.title = t.title || tab.name;
       Object.assign(tab.attachment, t.attachment||{});
+      tab.published = t.published!==false;
+      tab.meta = t.meta ? Object.assign(emptyMeta(), t.meta) : (tab.attachment.processed ? deriveMeta(tab) : emptyMeta());
       return tab;
     });
     c.conversations = c.conversations||[];
-    c.scope = c.scope||{}; c.tabHits = c.tabHits||{}; c.faq = c.faq||[];
+    c.scope = c.scope||{}; c.tabHits = c.tabHits||{}; c.faq = c.faq||[]; c.queryTypes = c.queryTypes||{}; c.unanswered = c.unanswered||[];
     return c;
   });
   // o perfil sempre é derivado da conta, nunca de um valor salvo à parte
