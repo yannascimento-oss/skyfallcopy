@@ -37,14 +37,16 @@ public class AccountService {
     private final ClientAccountRepository accounts;
     private final PasswordEncoder encoder;
     private final AuditService audit;
+    private final PlanService plans;
     private final Clock clock;
     private final SecureRandom random = new SecureRandom();
 
     public AccountService(ClientAccountRepository accounts, PasswordEncoder encoder,
-                          AuditService audit, Clock clock) {
+                          AuditService audit, PlanService plans, Clock clock) {
         this.accounts = accounts;
         this.encoder = encoder;
         this.audit = audit;
+        this.plans = plans;
         this.clock = clock;
     }
 
@@ -77,6 +79,7 @@ public class AccountService {
         account.setCompany(company.trim());
         account.setSegment(segment == null || segment.isBlank() ? null : segment.trim());
         accounts.save(account);
+        plans.createDefaultTabs(account);
         Invite invite = newInvite(account, TokenPurpose.INVITE);
         audit.record("CLIENT_CREATED", account.getId(), null, null, "Acesso criado para " + normalized);
         return invite;

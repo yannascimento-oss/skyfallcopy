@@ -125,4 +125,23 @@ public abstract class AbstractIntegrationTest {
         String content = actions.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         return json.readTree(content).path("message").asText();
     }
+
+    protected record ClientLogin(MockHttpSession session, long id, String email) {
+    }
+
+    /** Cria um cliente, aceita o convite e entra como ele. */
+    protected ClientLogin createClientAndLogin(MockHttpSession admin, String name) throws Exception {
+        String email = randomEmail();
+        String password = randomPassword();
+        JsonNode created = createClient(admin, name, email, name + " Ltda");
+        acceptInvite(created.get("inviteToken").asText(), password);
+        return new ClientLogin(loginOk(email, password), created.get("client").get("id").asLong(), email);
+    }
+
+    protected MockHttpSession installAndLoginAdmin() throws Exception {
+        String email = randomEmail();
+        String password = randomPassword();
+        install(email, password);
+        return loginOk(email, password);
+    }
 }
