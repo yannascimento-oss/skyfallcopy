@@ -3,6 +3,7 @@ package org.empresajr.chatjr.service;
 import org.empresajr.chatjr.domain.AccountPrincipal;
 import org.empresajr.chatjr.domain.ClientAccount;
 import org.empresajr.chatjr.domain.DefaultStages;
+import org.empresajr.chatjr.domain.GeneratedContent;
 import org.empresajr.chatjr.domain.HtmlSanitizer;
 import org.empresajr.chatjr.domain.PlanTab;
 import org.empresajr.chatjr.domain.PlanVersion;
@@ -194,6 +195,39 @@ public class PlanService {
         touchPlan(client, now);
         audit.record("TAB_RESTORED", clientId, tab.getId(), tab.getName(), "versão " + version);
         return TabView.of(tab, true, tab.isPublished(), !blockedTabIds(clientId).contains(tab.getId()));
+    }
+
+    /** Aba de um cliente existente, para a consultoria. */
+    @Transactional(readOnly = true)
+    public PlanTab adminTab(Long clientId, Long tabId) {
+        requireClient(clientId);
+        return requireTab(clientId, tabId);
+    }
+
+    /** Grava o conteúdo gerado a partir do PDF. O estado anterior vira uma versão; a publicação não muda. */
+    @Transactional
+    public void applyGenerated(Long clientId, Long tabId, GeneratedContent content, String source,
+                               String actorEmail, Long actorId) {
+        ClientAccount client = requireClient(clientId);
+        PlanTab tab = requireTab(clientId, tabId);
+        Instant now = clock.instant();
+        versions.save(PlanVersion.snapshotOf(tab, "PROCESS", actorEmail, now));
+        tab.applyContent(
+                content.title() == null ? tab.getTitle() : content.title(),
+                HtmlSanitizer.sanitize(content.html()),
+                orElse(content.shortDescription(), tab.getShortDescription()),
+                orElse(content.whatIsIt(), tab.getWhatIsIt()),
+                orElse(content.objective(), tab.getObjective()),
+                orElse(PlanTab.join(content.keyPoints()), tab.getKeyPoints()),
+                orElse(PlanTab.join(content.suggestedQuestions()), tab.getSuggestedQuestions()),
+                source, now);
+        tabs.save(tab);
+        touchPlan(client, now);
+        audit.recordAs(actorId, actorEmail, "TAB_PROCESSED", clientId, tab.getId(), tab.getName(), null);
+    }
+
+    private static String orElse(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
     }
 
     // ---------- apoio ----------

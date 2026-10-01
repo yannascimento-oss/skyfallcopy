@@ -28,13 +28,16 @@ public class SettingsService {
     private final SecretCipher cipher;
     private final Clock clock;
     private final String envAiKey;
+    private final String defaultModel;
 
     public SettingsService(AppSettingRepository repository, SecretCipher cipher, Clock clock,
-                           @Value("${chatjr.ai.default-key:}") String envAiKey) {
+                           @Value("${chatjr.ai.default-key:}") String envAiKey,
+                           @Value("${chatjr.ai.default-model:claude-sonnet-4-6}") String defaultModel) {
         this.repository = repository;
         this.cipher = cipher;
         this.clock = clock;
         this.envAiKey = envAiKey;
+        this.defaultModel = defaultModel;
     }
 
     @Transactional(readOnly = true)
@@ -97,6 +100,25 @@ public class SettingsService {
     @Transactional(readOnly = true)
     public Optional<String> maskedAiKey() {
         return aiKey().map(SettingsService::mask);
+    }
+
+    @Transactional(readOnly = true)
+    public String aiModel() {
+        return get(AI_MODEL, defaultModel);
+    }
+
+    @Transactional(readOnly = true)
+    public int aiMaxTokens() {
+        return Math.max(256, Math.min(16000, getInt(AI_MAX_TOKENS, 3000)));
+    }
+
+    @Transactional(readOnly = true)
+    public double aiTemperature() {
+        try {
+            return Math.max(0.0, Math.min(1.0, Double.parseDouble(get(AI_TEMPERATURE, "0.2").trim())));
+        } catch (NumberFormatException e) {
+            return 0.2;
+        }
     }
 
     public static String mask(String key) {

@@ -18,10 +18,18 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import com.sun.net.httpserver.HttpServer;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,7 +55,92 @@ public abstract class AbstractIntegrationTest {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         // Segredos de teste são gerados na hora: nenhuma credencial fica escrita no código.
         registry.add("chatjr.secret", () -> UUID.randomUUID() + "-" + UUID.randomUUID());
+        registry.add("chatjr.ai.base-url", () -> "http://127.0.0.1:" + AI_STUB.getAddress().getPort());
         registry.add("chatjr.data-dir", () -> System.getProperty("java.io.tmpdir") + "/chatjr-test-" + UUID.randomUUID());
+    }
+
+    // ---------- servidor de mentira da API da Anthropic ----------
+
+    /** Resposta programada do servidor de mentira. */
+    protected record StubReply(int status, String body, long delayMs) {
+    }
+
+    static final HttpServer AI_STUB;
+    protected static final AtomicReference<StubReply> AI_REPLY = new AtomicReference<>();
+    /** Cada chamada recebida: key, version, path e body. */
+    protected static final List<Map<String, String>> AI_CALLS = new CopyOnWriteArrayList<>();
+
+    static {
+        try {
+            AI_STUB = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+            AI_STUB.createContext("/v1/messages", exchange -> {
+                byte[] request = exchange.getRequestBody().readAllBytes();
+                Map<String, String> call = new HashMap<>();
+                call.put("key", exchange.getRequestHeaders().getFirst("x-api-key"));
+                call.put("version", exchange.getRequestHeaders().getFirst("anthropic-version"));
+                call.put("path", exchange.getRequestURI().getPath());
+                call.put("body", new String(request, StandardCharsets.UTF_8));
+                AI_CALLS.add(call);
+                StubReply reply = AI_REPLY.get();
+                try {
+                    if (reply.delayMs() > 0) {
+                        Thread.sleep(reply.delayMs());
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                byte[] out = reply.body().getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().add("Content-Type", "application/json");
+                exchange.sendResponseHeaders(reply.status(), out.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(out);
+                }
+            });
+            AI_STUB.start();
+        } catch (IOException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
+    /** Envelope no formato da API de mensagens, com o texto da resposta e o uso de tokens. */
+    protected static String aiEnvelope(String text, int inputTokens, int outputTokens) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            var root = mapper.createObjectNode();
+            root.put("id", "msg_teste");
+            root.put("type", "message");
+            root.put("role", "assistant");
+            root.put("model", "modelo-de-teste");
+            root.putArray("content").addObject().put("type", "text").put("text", text);
+            root.put("stop_reason", "end_turn");
+            root.putObject("usage").put("input_tokens", inputTokens).put("output_tokens", outputTokens);
+            return mapper.writeValueAsString(root);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** Conteúdo que uma IA bem-comportada devolveria para a etapa Mercado. */
+    protected static String goodAiContent() {
+        try {
+            return new ObjectMapper().writeValueAsString(Map.of(
+                    "title", "Mercado",
+                    "html", "<p>O mercado cresce dez por cento ao ano.</p><script>alert(1)</script>",
+                    "shortDescription", "Mercado em crescimento.",
+                    "whatIsIt", "Análise do mercado em que a empresa atua.",
+                    "objective", "Mostrar o tamanho do mercado.",
+                    "keyPoints", List.of("Crescimento de 10% ao ano", "Mercado fragmentado"),
+                    "suggestedQuestions", List.of("Quanto o mercado cresce?"),
+                    "sections", List.of("Tamanho do mercado", "Crescimento")));
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @BeforeEach
+    void resetAiStub() {
+        AI_CALLS.clear();
+        AI_REPLY.set(new StubReply(200, aiEnvelope(goodAiContent(), 120, 80), 0));
     }
 
     protected static final String CSRF_TOKEN = "token-csrf-de-teste";

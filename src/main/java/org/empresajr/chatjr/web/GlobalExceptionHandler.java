@@ -1,5 +1,7 @@
 package org.empresajr.chatjr.web;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.empresajr.chatjr.service.AppErrorService;
 import org.empresajr.chatjr.web.dto.ApiError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,12 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    private final AppErrorService appErrors;
+
+    public GlobalExceptionHandler(AppErrorService appErrors) {
+        this.appErrors = appErrors;
+    }
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiError> handleApi(ApiException e) {
@@ -57,13 +65,14 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleOther(Exception e) {
+    public ResponseEntity<ApiError> handleOther(Exception e, HttpServletRequest request) {
         // Erros do próprio Spring MVC (rota inexistente, método errado...) já trazem o status correto.
         if (e instanceof org.springframework.web.ErrorResponse mvc) {
             HttpStatusCode status = mvc.getStatusCode();
             return ResponseEntity.status(status).body(new ApiError(messageFor(status)));
         }
         log.error("Erro inesperado", e);
+        appErrors.record(e.getClass().getSimpleName() + ": " + e.getMessage(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiError(
                 "Ocorreu um erro inesperado. Tente de novo; se continuar, avise a consultoria."));
     }
