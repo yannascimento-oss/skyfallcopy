@@ -1,0 +1,93 @@
+import sys, json
+from playwright.sync_api import sync_playwright
+import pathlib
+ROOT=(pathlib.Path(__file__).resolve().parent.parent/'index.html').as_uri()
+res=[]; errs=[]
+def ok(name,cond): res.append((name,bool(cond))); print(('PASS ' if cond else 'FAIL ')+name)
+
+with sync_playwright() as p:
+    b=p.chromium.launch()
+    def fresh():
+        ctx=b.new_context(viewport={'width':1280,'height':800}); pg=ctx.new_page()
+        pg.on('pageerror',lambda e:errs.append(str(e)))
+        pg.on('dialog',lambda d:(errs.append('DIALOG:'+d.message),d.dismiss()))
+        pg.goto(ROOT); return pg
+    # --- landing
+    pg=fresh()
+    dups=pg.evaluate("()=>{const c={};document.querySelectorAll('[id]').forEach(e=>c[e.id]=(c[e.id]||0)+1);return Object.keys(c).filter(k=>c[k]>1)}")
+    ok('HTML sem ids duplicados', not dups)
+    ok('só um menu lateral', pg.evaluate("document.querySelectorAll('[data-view=chat]').length")==1)
+    ok('landing sem "Criar conta"', 'Criar conta' not in pg.inner_text('#view-auth'))
+    ok('landing sem "Ainda não tem acesso? Criar"', 'Ainda não tem acesso' not in pg.inner_text('#view-auth'))
+    pg.fill('#login-email','naoexiste@x.com'); pg.fill('#login-pass','x'); pg.click('text=Entrar no Chat Jr')
+    ok('e-mail desconhecido é recusado', pg.is_visible('#login-error') and 'Não encontramos' in pg.inner_text('#login-error'))
+    pg.fill('#login-email','ana.silva@nortefit.com.br'); pg.fill('#login-pass',''); pg.click('text=Entrar no Chat Jr')
+    ok('senha vazia é recusada', 'senha' in pg.inner_text('#login-error').lower())
+    # --- cliente
+    pg.fill('#login-pass','qualquer'); pg.click('text=Entrar no Chat Jr')
+    pg.wait_for_selector('#app:not(.hidden)')
+    nav=pg.inner_text('#sidebar')
+    ok('cliente: sem Configurações', 'Configurações' not in nav or not pg.is_visible('[data-view=config]'))
+    ok('cliente: sem Clientes & Planos', not pg.is_visible('[data-view=admin]'))
+    ok('cliente: sem interruptor de admin', pg.locator('#admin-switch').count()==0)
+    ok('cliente: sem selo "IA offline"', not pg.is_visible('#ai-badge'))
+    dash=pg.inner_text('#content')
+    ok('cliente: sem "Progresso do plano"', 'rogresso do plano' not in dash and 'abas processadas' not in dash)
+    ok('cliente: dashboard tem Visão geral', 'Visão geral' in dash and 'Tema mais consultado' in dash and 'Perguntas sem resposta' in dash)
+    pg.evaluate("go('admin')"); ok('cliente: go(admin) volta ao dashboard', 'Visão geral' in pg.inner_text('#content'))
+    pg.evaluate("go('config')"); ok('cliente: go(config) volta ao dashboard', 'Visão geral' in pg.inner_text('#content'))
+    pg.evaluate("openClientWorkspace(2)"); ok('cliente: openClientWorkspace ignorado', pg.evaluate("activeClientId")==1)
+    pg.click('[data-view=plano]')
+    plano=pg.inner_text('#content')
+    ok('cliente: plano sem anexos/PDF/reprocessar', all(x not in plano for x in ['Anexos da aba','Arquivo PDF','Reprocessar','Processar com IA','seção(ões)','Nova aba']))
+    ok('cliente: plano sem botões de editar/excluir', pg.locator('.cat-icon-btn').count()==0)
+    ok('cliente: painel de anexo vazio', pg.evaluate("document.getElementById('attach-panel').innerHTML.trim()===''"))
+    ok('cliente: plano mostra conteúdo', 'Resumo Executivo' in plano and 'Atualizado em' in plano)
+    pg.click('[data-view=chat]'); ok('chat com título novo', 'Consultar plano' in pg.inner_text('#content'))
+    pg.click('[data-view=indicadores]'); ok('indicadores abre', 'Indicadores' in pg.inner_text('#content'))
+    # reload mantém sessão do cliente e não vira admin
+    pg.reload(); pg.wait_for_selector('#app:not(.hidden)')
+    ok('reload: segue cliente', pg.evaluate("isAdmin")==False and not pg.is_visible('[data-view=admin]'))
+    # adulterar o localStorage para admin não promove (perfil vem da conta)
+    pg.evaluate("""()=>{const d=JSON.parse(localStorage.getItem('chatjr.v1')); d.isAdmin=true; localStorage.setItem('chatjr.v1',JSON.stringify(d));}""")
+    pg.reload(); pg.wait_for_selector('#app:not(.hidden)')
+    ok('localStorage isAdmin=true não promove', pg.evaluate("isAdmin")==False)
+    pg.close()
+    # --- cliente sem conteúdo (Rafael)
+    pg=fresh(); pg.fill('#login-email','rafael@graoecia.com.br'); pg.fill('#login-pass','x'); pg.click('text=Entrar no Chat Jr')
+    pg.wait_for_selector('#app:not(.hidden)'); pg.click('[data-view=plano]')
+    ok('cliente sem conteúdo: mensagem humana', 'ainda não foi publicada' in pg.inner_text('#content'))
+    pg.click('[data-view=chat]'); pg.fill('#chat-input','qual o público?'); pg.press('#chat-input','Enter'); pg.wait_for_timeout(1500)
+    ok('chat sem plano: sem jargão de anexo', 'Processar com IA' not in pg.inner_text('#chat-thread'))
+    pg.close()
+    # --- admin
+    pg=fresh(); pg.fill('#login-email','consultoria@empresajr.org'); pg.fill('#login-pass','x'); pg.click('text=Entrar no Chat Jr')
+    pg.wait_for_selector('#app:not(.hidden)')
+    ok('admin: abre em Clientes & Planos', 'Clientes' in pg.inner_text('#page-title'))
+    ok('admin: vê grupo Administração', pg.is_visible('[data-view=admin]') and pg.is_visible('[data-view=config]'))
+    ok('admin: sem faixa amarela na lista', not pg.is_visible('#impersonation-bar'))
+    pg.click('text=Abrir painel >> nth=0')
+    ok('admin: faixa amarela no painel do cliente', pg.is_visible('#impersonation-bar'))
+    ok('admin: vê anexos e processar', 'Processar com IA' in pg.inner_text('#content') or 'Reprocessar' in pg.inner_text('#content'))
+    ok('admin: vê Nova aba', 'Nova aba' in pg.inner_text('#content'))
+    pg.click('[data-view=config]'); ok('admin: abre Configurações', 'Inteligência artificial' in pg.inner_text('#content'))
+    # criar cliente
+    pg.click('[data-view=admin]'); pg.click('text=+ Novo cliente')
+    pg.fill('#nc-name','Bia Souza'); pg.fill('#nc-email','bia@empresa.com'); pg.fill('#nc-company','Bia Doces'); pg.click('text=Cadastrar cliente')
+    pg.wait_for_function("document.getElementById('admin-tbody').innerText.includes('bia@empresa.com')", timeout=3000)
+    ok('admin: cliente criado com e-mail de acesso', 'bia@empresa.com' in pg.inner_text('#admin-tbody'))
+    pg.click('text=+ Novo cliente'); pg.fill('#nc-name','X'); pg.fill('#nc-email','bia@empresa.com'); pg.fill('#nc-company','Y'); pg.click('text=Cadastrar cliente')
+    pg.wait_for_function("document.getElementById('toasts').innerText.includes('Já existe')", timeout=3000)
+    ok('admin: e-mail duplicado é recusado', 'Já existe' in pg.inner_text('#toasts'))
+    pg.click('text=Cancelar')
+    # suspender e testar login
+    pg.evaluate("toggleSuspend(4)"); 
+    pg.click('.logout-btn')
+    pg.fill('#login-email','joao@torrescontabil.com.br'); pg.fill('#login-pass','x'); pg.click('text=Entrar no Chat Jr')
+    ok('login de cliente suspenso é bloqueado', 'suspenso' in pg.inner_text('#login-error'))
+    pg.close(); b.close()
+
+fails=[n for n,c in res if not c]
+print('\nTOTAL',len(res),'FALHAS',len(fails), fails)
+print('ERROS DE CONSOLE/DIALOG:', errs)
+sys.exit(1 if fails or errs else 0)

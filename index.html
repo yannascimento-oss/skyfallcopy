@@ -30,6 +30,7 @@
     <button class="cta" onclick="scrollToLogin()">ACESSAR MEU PLANO</button>
   </header>
 
+  <main>
   <section class="jr-hero">
     <div class="yellow-tab"></div>
     <div class="hero-grid">
@@ -99,6 +100,8 @@
     </div>
   </section>
 
+  </main>
+
   <footer class="jr-foot" id="contato">
     <div class="inner">
       <span id="quem-somos">Chat Jr · Empresa JR Administração UFBA — consultoria empresarial desde 1989.</span>
@@ -160,7 +163,7 @@
           <div class="n" id="side-user-name">Ana Silva</div>
           <div class="r" id="side-user-role">Norte Fit Studios</div>
         </div>
-        <button class="logout-btn" title="Sair" onclick="doLogout()">
+        <button class="logout-btn" title="Sair" aria-label="Sair da conta" onclick="doLogout()">
           <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M8 17H4.5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1H8M13.5 14l3.5-4-3.5-4M17 10H7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
@@ -168,7 +171,7 @@
   </aside>
 
   <div class="main-col">
-    <div class="topbar">
+    <header class="topbar">
       <div class="topbar-left">
         <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Abrir menu"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
         <div>
@@ -178,21 +181,21 @@
       </div>
       <div class="topbar-right">
         <span class="ai-badge off admin-only hidden" id="ai-badge" title="Estado da conexão com a IA">IA</span>
-        <button class="icon-btn" id="theme-toggle-btn" title="Alternar modo claro e escuro" onclick="toggleTheme()">
+        <button class="icon-btn" id="theme-toggle-btn" title="Alternar modo claro e escuro" aria-label="Alternar modo claro e escuro" onclick="toggleTheme()">
           <svg id="theme-icon-sun" width="19" height="19" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3.6" stroke="currentColor" stroke-width="1.6"/><path d="M10 2.5v2M10 15.5v2M17.5 10h-2M4.5 10h-2M15.3 4.7l-1.4 1.4M6.1 13.9l-1.4 1.4M15.3 15.3l-1.4-1.4M6.1 6.1 4.7 4.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
           <svg id="theme-icon-moon" class="hidden" width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M16.5 12.3A6.8 6.8 0 0 1 7.7 3.5a7 7 0 1 0 8.8 8.8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
         </button>
         <div class="avatar" id="top-avatar" style="width:32px;height:32px;font-size:12px;">AS</div>
       </div>
-    </div>
+    </header>
 
-    <div class="impersonation-bar hidden" id="impersonation-bar">
+    <div class="impersonation-bar hidden" id="impersonation-bar" role="region" aria-label="Aviso de edição pela consultoria">
       <span>Você está no painel de <b id="imp-client-name">—</b> como consultoria. As alterações que fizer aqui valem para esse cliente.</span>
       <span class="grow"></span>
       <button onclick="exitClientWorkspace()">Sair do painel do cliente</button>
     </div>
 
-    <div class="content" id="content"></div>
+    <main class="content" id="content"></main>
   </div>
 </div>
 
@@ -222,18 +225,18 @@
         <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         Nova conversa
       </button>
-      <div class="conv-search"><input type="text" placeholder="Pesquisar conversas..." oninput="filterConvs(this.value)"></div>
+      <div class="conv-search"><input type="text" placeholder="Pesquisar conversas..." aria-label="Pesquisar conversas" oninput="filterConvs(this.value)"></div>
       <div class="conv-list scrollbar-thin" id="conv-list"></div>
     </div>
     <div class="chat-col">
       <div class="chat-head">
-        <h2>Consultar plano</h2>
+        <h1>Consultar plano</h1>
         <p id="chat-head-sub">Faça uma pergunta sobre seu Plano de Negócios.</p>
       </div>
       <div class="chat-thread scrollbar-thin" id="chat-thread"></div>
       <div class="chat-input-wrap">
         <div class="chat-input-box">
-          <textarea id="chat-input" rows="1" placeholder="Pergunte qualquer coisa sobre seu Plano de Negócios..." oninput="autoGrow(this)" onkeydown="handleChatKey(event)"></textarea>
+          <textarea id="chat-input" rows="1" aria-label="Sua pergunta sobre o Plano de Negócios" placeholder="Pergunte qualquer coisa sobre seu Plano de Negócios..." oninput="autoGrow(this)" onkeydown="handleChatKey(event)"></textarea>
           <button class="send-btn" id="send-btn" onclick="sendMessage()" aria-label="Enviar">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 10h13M11 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
@@ -252,7 +255,7 @@
   <div class="card attach-panel" id="attach-panel"></div>
   <div class="plan-search">
     <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/><path d="m17 17-3.5-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-    <input type="text" id="plan-search-input" placeholder="Pesquisar no plano (ex: margem, CAC, concorrentes, TIR, payback)" oninput="planSearch(this.value)">
+    <input type="text" id="plan-search-input" aria-label="Pesquisar no plano" placeholder="Pesquisar no plano (ex: margem, CAC, concorrentes, TIR, payback)" oninput="planSearch(this.value)">
   </div>
   <div class="plan-shell">
     <div class="card plan-cat-list" id="plan-cat-list"></div>
@@ -279,7 +282,7 @@
   </div>
   <div class="settings-grid">
     <div class="card settings-card">
-      <h3>Inteligência artificial</h3>
+      <h2>Inteligência artificial</h2>
       <p class="d">O processamento das abas e as respostas do chat usam a API da Anthropic. Dentro do Chat Jr a conexão é automática; em uma instalação própria, informe a chave da sua conta.</p>
       <div class="toggle-row" style="padding-top:0;">
         <div><div class="t">Estado da conexão</div><div class="d2" id="cfg-ai-state">Verificando...</div></div>
@@ -300,21 +303,21 @@
       </div>
     </div>
     <div class="card settings-card">
-      <h3>Perfil</h3>
+      <h2>Perfil</h2>
       <p class="d">Suas informações de acesso.</p>
-      <div class="field"><label>Nome</label><input type="text" id="cfg-name" value=""></div>
-      <div class="field"><label>E-mail</label><input type="email" id="cfg-email" value=""></div>
+      <div class="field"><label for="cfg-name">Nome</label><input type="text" id="cfg-name" value=""></div>
+      <div class="field"><label for="cfg-email">E-mail</label><input type="email" id="cfg-email" value=""></div>
       <button class="btn blue" onclick="saveProfile()">Salvar alterações</button>
     </div>
     <div class="card settings-card">
-      <h3>Empresa</h3>
+      <h2>Empresa</h2>
       <p class="d">Dados da empresa vinculada à conta.</p>
-      <div class="field"><label for="nc-company">Nome da empresa</label><input type="text" id="cfg-company" value=""></div>
-      <div class="field"><label>Segmento</label><input type="text" id="cfg-segment" value=""></div>
+      <div class="field"><label for="cfg-company">Nome da empresa</label><input type="text" id="cfg-company" value=""></div>
+      <div class="field"><label for="cfg-segment">Segmento</label><input type="text" id="cfg-segment" value=""></div>
       <button class="btn blue" onclick="saveCompany()">Salvar dados da empresa</button>
     </div>
     <div class="card settings-card">
-      <h3>Dados deste navegador</h3>
+      <h2>Dados deste navegador</h2>
       <p class="d">O plano, as abas processadas e as conversas ficam guardados aqui, neste navegador. Nada sobe para um servidor.</p>
       <div class="toggle-row" style="padding-top:0;">
         <div><div class="t">Espaço em uso</div><div class="d2" id="cfg-storage">—</div></div>
@@ -331,15 +334,11 @@
       </div>
     </div>
     <div class="card settings-card">
-      <h3>Aparência</h3>
+      <h2>Aparência</h2>
       <p class="d">Escolha como a interface é exibida.</p>
       <div class="toggle-row">
         <div><div class="t">Modo escuro</div><div class="d2">Alterna as cores entre claro e escuro</div></div>
         <button class="switch light" id="theme-settings-switch" onclick="toggleTheme()" aria-label="Alternar modo escuro"></button>
-      </div>
-      <div class="toggle-row">
-        <div><div class="t">Avisar quando uma aba for processada</div><div class="d2">Mostra uma confirmação ao fim do processamento</div></div>
-        <button class="switch light on" onclick="this.classList.toggle('on')" aria-label="Alternar aviso"></button>
       </div>
     </div>
   </div>
@@ -372,7 +371,7 @@
   </div>
   <div class="ct-summary" id="ct-summary"></div>
   <div class="ct-layout">
-    <div class="ct-list" id="ct-list" role="list"></div>
+    <div class="ct-list" id="ct-list"></div>
     <div class="ct-detail" id="ct-detail"></div>
   </div>
 </template>
@@ -381,12 +380,12 @@
      4. MODAIS
      ============================================================ -->
 <div class="modal-overlay hidden" id="new-client-modal">
-  <div class="modal">
-    <h3>Novo cliente</h3>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="new-client-title">
+    <h3 id="new-client-title">Novo cliente</h3>
     <p class="d">Crie o acesso do cliente. O plano nasce com as etapas padrão, prontas para receber o material.</p>
     <div class="field"><label for="nc-name">Nome do responsável</label><input type="text" id="nc-name" placeholder="Ex: Rafael Matos"></div>
     <div class="field"><label for="nc-email">E-mail de acesso</label><input type="email" id="nc-email" placeholder="rafael@empresa.com"></div>
-    <div class="field"><label>Nome da empresa</label><input type="text" id="nc-company" placeholder="Ex: Cafeteria Grão &amp; Cia"></div>
+    <div class="field"><label for="nc-company">Nome da empresa</label><input type="text" id="nc-company" placeholder="Ex: Cafeteria Grão &amp; Cia"></div>
     <div class="field"><label for="nc-segment">Segmento</label><input type="text" id="nc-segment" placeholder="Ex: Alimentação"></div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('new-client-modal')">Cancelar</button>
@@ -396,7 +395,7 @@
 </div>
 
 <div class="modal-overlay hidden" id="client-access-modal">
-  <div class="modal wide">
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="access-modal-title">
     <h3 id="access-modal-title">Cliente</h3>
     <p class="d" id="access-modal-sub">—</p>
     <div class="access-tabs">
@@ -412,7 +411,7 @@
 </div>
 
 <div class="modal-overlay hidden" id="tab-modal">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tab-modal-title">
     <h3 id="tab-modal-title">Nova aba</h3>
     <p class="d" id="tab-modal-sub">Crie uma aba no plano.</p>
     <div class="field"><label for="tab-name-input">Nome da aba</label><input type="text" id="tab-name-input" placeholder="Ex: Análise Competitiva"></div>

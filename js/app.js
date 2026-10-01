@@ -72,8 +72,24 @@ function textToHtml(t){
   return t.split(/\n{2,}/).map(p=>'<p>'+esc(p).replace(/\n/g,'<br>')+'</p>').join('');
 }
 
-function openModal(id){ document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+let modalReturnFocus=null;
+function openModal(id){
+  const m=document.getElementById(id);
+  modalReturnFocus=document.activeElement;
+  m.classList.remove('hidden');
+  const f=m.querySelector('input:not([type=hidden]),select,textarea,button');
+  if(f) f.focus();
+}
+function closeModal(id){
+  document.getElementById(id).classList.add('hidden');
+  if(modalReturnFocus && document.contains(modalReturnFocus)) modalReturnFocus.focus();
+}
+// Esc fecha o diálogo aberto
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  const open=[...document.querySelectorAll('.modal-overlay:not(.hidden)')].pop();
+  if(open) closeModal(open.id);
+});
 function scrollToLogin(){
   const c=document.getElementById('login-card');
   c.scrollIntoView({behavior:'smooth',block:'center'});
@@ -258,6 +274,8 @@ let sessionClientId = null;  // quem está logado (cliente ou administrador)
 let activeClientId  = 1;     // cujo plano está aberto
 let isAdmin         = false; // vem da conta, nunca de um interruptor
 let adminEditing    = false; // true quando o administrador está dentro do plano de um cliente
+let loginAt         = 0;     // quando a sessão começou
+const SESSION_MS    = 8*60*60*1000; // a sessão vale 8 horas
 
 function C(){ return clients.find(c=>c.id===activeClientId) || clients[0]; }
 function sessionUser(){
@@ -321,6 +339,7 @@ function doLogin(){
   activeClientId = isAdmin ? clients[0].id : member.id;
   activeTabId = null;
   member.lastLogin = nowLabel();
+  loginAt = Date.now();
   document.getElementById('login-pass').value='';
   document.getElementById('view-auth').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
@@ -389,9 +408,17 @@ const ADMIN_VIEWS=['admin','config','conteudo'];
 function go(view){
   // só a consultoria entra nas telas administrativas
   if(ADMIN_VIEWS.includes(view) && !isAdmin) view='dashboard';
+  // acesso suspenso enquanto a pessoa estava logada: encerra a sessão
+  if(!isAdmin && sessionUser().suspended){
+    doLogout(); loginFail('Seu acesso foi suspenso. Fale com a consultoria da Empresa JR.'); return;
+  }
   currentView=view;
   toggleSidebar(false);
-  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active', el.dataset.view===view));
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    const on=el.dataset.view===view;
+    el.classList.toggle('active', on);
+    if(on) el.setAttribute('aria-current','page'); else el.removeAttribute('aria-current');
+  });
   const content=document.getElementById('content');
   content.innerHTML='';
   content.classList.toggle('chat-mode', view==='chat');
@@ -550,6 +577,10 @@ function initDashboard(){
   document.getElementById('dash-sub').textContent = isAdmin
     ? 'Você está vendo o Chat Jr como ' + c.name + ' vê.'
     : 'Seu Plano de Negócios está disponível para consulta.';
+  const publicadas = visibleTabs().filter(t=>t.attachment.processed||t.attachment.knowledge).length;
+  if(!isAdmin && !publicadas){
+    document.getElementById('dash-sub').textContent = 'Seu plano está sendo preparado pela consultoria. Assim que as primeiras etapas forem publicadas, elas aparecem aqui.';
+  }
   const semResposta = Math.max(0, (c.asked||0) - (c.answered||0));
   const rows = [
     ['Última atualização', c.updated && c.updated!=='—' ? c.updated : 'Ainda não publicado'],
@@ -829,10 +860,10 @@ function renderTabList(){
       <span class="cat-name">${esc(t.name)}</span>
       ${isAdmin ? `<span class="cat-item-actions">
         ${(a.pdfName||a.slideLink) ? `<span class="cat-attach-dot ${a.processed?'':'pending'}" title="${a.processed?'Anexo processado':'Anexo aguardando processamento'}"></span>`:''}
-        <button class="cat-icon-btn" title="Editar aba" onclick="openEditTabModal('${t.id}',event)">
+        <button class="cat-icon-btn" title="Editar aba" aria-label="Editar aba ${esc(t.name)}" onclick="openEditTabModal('${t.id}',event)">
           <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M14.2 2.8a1.6 1.6 0 0 1 2.3 2.3L7 14.6l-3 .7.7-3 9.5-9.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
         </button>
-        <button class="cat-icon-btn del" title="Excluir aba" onclick="deleteTab('${t.id}',event)">
+        <button class="cat-icon-btn del" title="Excluir aba" aria-label="Excluir aba ${esc(t.name)}" onclick="deleteTab('${t.id}',event)">
           <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><path d="M4.5 6h11M8 6V4.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V6m-6.5 0 .6 9a1 1 0 0 0 1 .9h5.8a1 1 0 0 0 1-.9l.6-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </span>` : ''}`;
@@ -1027,9 +1058,8 @@ function renderThread(){
   if(!conv || !conv.messages.length){
     thread.innerHTML=`
       <div class="chat-empty">
-        <div class="ring"><img src="${LOGO_SRC}" alt="" style="width:34px;height:34px;border-radius:8px;"></div>
-        <h3>Posso ajudar a consultar e interpretar o Plano de Negócios da ${esc(C().company)}.</h3>
-        <p>Pergunte sobre público-alvo, concorrentes, riscos, metas ou qualquer outra aba do plano. Se a informação não estiver no plano, eu digo isso em vez de inventar.</p>
+        <h2>Faça uma pergunta sobre o plano da ${esc(C().company)}</h2>
+        <p>As respostas vêm somente do conteúdo do plano e indicam a seção usada. Quando a informação não está no plano, o chat avisa em vez de inventar.</p>
         <div class="suggest-grid">${chatSuggestions().map(q=>`<button class="suggest-chip" onclick="askFromSuggestion(${JSON.stringify(q).replace(/"/g,'&quot;')})"><span>${esc(q)}</span><span class="arrow" aria-hidden="true">›</span></button>`).join('')}</div>
       </div>`;
     return;
@@ -1043,7 +1073,8 @@ function renderMessage(m){
   const av = m.role==='ai' ? `<img src="${LOGO_SRC}" alt="Chat Jr">` : esc(initialsOf(sessionUser().name));
   const src = m.source ? `<div class="msg-source">📄 <span><b>Fonte no plano:</b> ${esc(m.source)}</span></div>` : '';
   const tag = m.inference ? '<div class="msg-infer-tag">Inferência</div>' : '';
-  row.innerHTML=`<div class="msg-avatar">${av}</div><div class="msg-bubble">${tag}${m.html}${src}</div>`;
+  const note = m.degraded ? '<div class="msg-note">O assistente está temporariamente indisponível. Esta resposta veio de uma busca direta no texto do plano.</div>' : '';
+  row.innerHTML=`<div class="msg-avatar">${av}</div><div class="msg-bubble">${tag}${m.html}${src}${note}</div>`;
   return row;
 }
 function autoGrow(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,130)+'px'; }
@@ -1080,10 +1111,10 @@ async function sendMessage(){
 
   let answer;
   try{ answer = await aiAnswer(text, conv); }
-  catch(e){ answer = localAnswer(text); }
+  catch(e){ answer = localAnswer(text); answer.degraded = true; }
 
   typing.remove();
-  conv.messages.push({role:'ai', html:answer.html, source:answer.source, inference:answer.inference});
+  conv.messages.push({role:'ai', html:answer.html, source:answer.source, inference:answer.inference, degraded:!!answer.degraded});
   registerQuery(text, answer);
   renderThread();
 }
@@ -1270,11 +1301,11 @@ function renderAdminTable(){
     tr.innerHTML=`
       <td><div class="client-cell"><div class="mini-avatar" aria-hidden="true">${esc(initialsOf(c.name))}</div>
         <span class="nm"><b>${esc(c.name)}</b></span></div></td>
-      <td>${esc(c.company)}</td>
-      <td>${esc(c.email)}</td>
-      <td>${c.version?'v'+c.version+' · ':''}${esc(c.planFile)}</td>
-      <td><span class="pill ${pill}">${esc(stLabel)}</span></td>
-      <td>${esc(c.lastLogin)}</td>
+      <td data-label="Empresa">${esc(c.company)}</td>
+      <td data-label="E-mail de acesso">${esc(c.email)}</td>
+      <td data-label="Plano">${c.version?'v'+c.version+' · ':''}${esc(c.planFile)}</td>
+      <td data-label="Status"><span class="pill ${pill}">${esc(stLabel)}</span></td>
+      <td data-label="Último acesso">${esc(c.lastLogin)}</td>
       <td><div class="row-actions">
         <button class="btn blue" onclick="openClientWorkspace(${c.id})">Abrir painel</button>
         <button class="btn" onclick="openClientAccess(${c.id})">Gerenciar acesso</button>
@@ -1332,7 +1363,7 @@ function renderContentAdmin(){
   if(!all.find(t=>t.id===activeTabId)) activeTabId = all[0] ? all[0].id : null;
   list.innerHTML = all.map(t=>{
     const st=stageStatus(t);
-    return `<button type="button" role="listitem" class="ct-row${t.id===activeTabId?' active':''}" onclick="selectContentTab('${t.id}')"${t.id===activeTabId?' aria-current="true"':''}>
+    return `<button type="button" class="ct-row${t.id===activeTabId?' active':''}" onclick="selectContentTab('${t.id}')"${t.id===activeTabId?' aria-current="true"':''}>
       <span class="nm">${esc(t.name)}</span><span class="pill ${st.cls}">${st.label}</span></button>`;
   }).join('');
   renderContentDetail();
@@ -1480,6 +1511,7 @@ function cleanTabForStorage(t){
 function snapshot(){
   return {
     version:1,
+    loginAt,
     theme:currentTheme,
     model:AI_MODEL,
     loggedIn: !document.getElementById('app').classList.contains('hidden'),
@@ -1534,6 +1566,14 @@ function restore(){
   applyTheme(data.theme==='dark' ? 'dark' : 'light');
   applyRole();
   if(sessionClientId) updateShell();
+  loginAt = data.loginAt || 0;
+  if(data.loggedIn && sessionClientId && (Date.now()-loginAt) > SESSION_MS){
+    sessionClientId=null; isAdmin=false; adminEditing=false; applyRole();
+    loginFail('Sua sessão expirou. Entre novamente para continuar.');
+  } else if(data.loggedIn && sessionClientId && !isAdmin && sessionUser().suspended){
+    sessionClientId=null; applyRole();
+    loginFail('Seu acesso foi suspenso. Fale com a consultoria da Empresa JR.');
+  }
   if(data.loggedIn && sessionClientId){
     document.getElementById('view-auth').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');

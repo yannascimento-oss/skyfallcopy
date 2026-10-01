@@ -66,6 +66,17 @@ Em **Conteúdo dos planos** a consultoria escolhe um cliente e gerencia cada eta
 - Uma etapa **não publicada** some da visão do cliente e fica fora do contexto do chat.
 - Etapas de demonstração mostram só uma definição genérica de "o que é" e "objetivo". Reprocessar com IA troca isso pelo que o material do cliente realmente diz.
 
+## Interface e acessibilidade
+
+- Visual sóbrio e plano: sem gradientes, brilho ou sombras no app; azul institucional só para ação e seleção; verde, amarelo e vermelho só para estado. A identidade da landing (navy, amarelo, logo) foi mantida.
+- Sidebar discreta; no celular ela vira gaveta e a tabela de clientes vira lista de cartões.
+- Auditoria com axe-core (WCAG A/AA e boas práticas): 0 violações em todas as telas, nos modos claro e escuro. Navegação por teclado, foco visível, `aria-current` no menu, diálogos com `Esc` e retorno de foco.
+- Estados cobertos: plano ainda não publicado, etapa sem conteúdo, cliente suspenso (inclusive com a sessão aberta), sessão expirada (8 h), assistente temporariamente indisponível e listas vazias.
+
+## Testes
+
+Veja `tests/README.md`. Cobrem perfis, login, publicação, indicadores, sanitização do HTML da IA, layout em 4 tamanhos de tela e acessibilidade.
+
 ## Configuração da IA
 
 - Abra **Configurações → Inteligência artificial** dentro do app.
