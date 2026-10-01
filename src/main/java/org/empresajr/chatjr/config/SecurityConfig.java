@@ -72,6 +72,7 @@ public class SecurityConfig {
                             "/api/auth/logout", "/api/auth/accept-invite").permitAll()
                     .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/chat/**").hasRole("CLIENT")
                     .requestMatchers("/api/**").authenticated()
                     .anyRequest().permitAll())
             .exceptionHandling(handling -> handling

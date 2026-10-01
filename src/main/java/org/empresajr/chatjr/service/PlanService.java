@@ -197,6 +197,12 @@ public class PlanService {
         return TabView.of(tab, true, tab.isPublished(), !blockedTabIds(clientId).contains(tab.getId()));
     }
 
+    /** Confirma que o cliente existe (para telas da consultoria). */
+    @Transactional(readOnly = true)
+    public ClientAccount adminClient(Long clientId) {
+        return requireClient(clientId);
+    }
+
     /** Aba de um cliente existente, para a consultoria. */
     @Transactional(readOnly = true)
     public PlanTab adminTab(Long clientId, Long tabId) {
