@@ -38,15 +38,17 @@ public class AccountService {
     private final PasswordEncoder encoder;
     private final AuditService audit;
     private final PlanService plans;
+    private final AttachmentService attachmentService;
     private final Clock clock;
     private final SecureRandom random = new SecureRandom();
 
     public AccountService(ClientAccountRepository accounts, PasswordEncoder encoder,
-                          AuditService audit, PlanService plans, Clock clock) {
+                          AuditService audit, PlanService plans, AttachmentService attachmentService, Clock clock) {
         this.accounts = accounts;
         this.encoder = encoder;
         this.audit = audit;
         this.plans = plans;
+        this.attachmentService = attachmentService;
         this.clock = clock;
     }
 
@@ -132,6 +134,79 @@ public class AccountService {
         ClientAccount admin = new ClientAccount(Role.ADMIN, name.trim(), normalized, clock.instant());
         admin.setNewPassword(encoder.encode(password));
         return accounts.save(admin);
+    }
+
+    // ---------- dados do cliente ----------
+
+    @Transactional
+    public ClientAccount updateClient(Long clientId, String name, String company, String segment) {
+        ClientAccount account = requireClient(clientId);
+        account.setName(name.trim());
+        account.setCompany(company.trim());
+        account.setSegment(segment == null || segment.isBlank() ? null : segment.trim());
+        accounts.save(account);
+        audit.record("CLIENT_UPDATED", account.getId(), null, null, account.getEmail());
+        return account;
+    }
+
+    /** Exclui o cliente e tudo dele (plano, conversas, anexos). Exige digitar o e-mail do cliente. */
+    @Transactional
+    public void deleteClient(Long clientId, String confirmEmail) {
+        ClientAccount account = requireClient(clientId);
+        if (!normalizeEmail(confirmEmail).equals(account.getEmail())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Para excluir, confirme digitando o e-mail do cliente: " + account.getEmail());
+        }
+        audit.record("CLIENT_DELETED", account.getId(), null, null, account.getEmail() + " (" + account.getCompany() + ")");
+        accounts.delete(account);
+        attachmentService.deleteClientFilesAfterCommit(clientId);
+    }
+
+    // ---------- administradores ----------
+
+    @Transactional(readOnly = true)
+    public List<ClientAccount> listAdmins() {
+        return accounts.findByRoleOrderByNameAsc(Role.ADMIN);
+    }
+
+    /** Cria um administrador sem senha; ele define a senha pelo link de convite. */
+    @Transactional
+    public Invite createAdminInvite(String name, String email) {
+        String normalized = normalizeEmail(email);
+        if (accounts.existsByEmail(normalized)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Já existe um acesso com esse e-mail.");
+        }
+        ClientAccount admin = accounts.save(new ClientAccount(Role.ADMIN, name.trim(), normalized, clock.instant()));
+        Invite invite = newInvite(admin, TokenPurpose.INVITE);
+        audit.record("ADMIN_CREATED", null, null, null, "Administrador " + normalized);
+        return invite;
+    }
+
+    @Transactional
+    public Invite reissueAdminInvite(Long adminId) {
+        ClientAccount admin = requireAdmin(adminId);
+        TokenPurpose purpose = admin.hasPassword() ? TokenPurpose.RESET : TokenPurpose.INVITE;
+        Invite invite = newInvite(admin, purpose);
+        audit.record(purpose == TokenPurpose.RESET ? "PASSWORD_RESET_ISSUED" : "INVITE_ISSUED", null, null, null,
+                "Link emitido para " + admin.getEmail());
+        return invite;
+    }
+
+    /** Ninguém suspende o próprio acesso: assim sempre sobra pelo menos um administrador ativo. */
+    @Transactional
+    public void setAdminSuspended(Long adminId, boolean suspended, Long actorId) {
+        ClientAccount admin = requireAdmin(adminId);
+        if (suspended && admin.getId().equals(actorId)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Você não pode suspender o seu próprio acesso.");
+        }
+        admin.setSuspended(suspended);
+        accounts.save(admin);
+        audit.record(suspended ? "ACCESS_SUSPENDED" : "ACCESS_RESTORED", null, null, null, admin.getEmail());
+    }
+
+    private ClientAccount requireAdmin(Long id) {
+        return accounts.findById(id).filter(a -> a.getRole() == Role.ADMIN)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Administrador não encontrado."));
     }
 
     @Transactional(readOnly = true)

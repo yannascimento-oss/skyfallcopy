@@ -197,6 +197,14 @@ public class PlanService {
         return TabView.of(tab, true, tab.isPublished(), !blockedTabIds(clientId).contains(tab.getId()));
     }
 
+    /** Abas que o solicitante pode exportar: a consultoria vê todas; o cliente, só as publicadas e liberadas. */
+    @Transactional(readOnly = true)
+    public List<PlanTab> readableTabs(AccountPrincipal who, Long clientId) {
+        checkAccess(who, clientId);
+        requireClient(clientId);
+        return who.isAdmin() ? tabs.findByClientIdOrderBySortOrderAscIdAsc(clientId) : visibleTabs(clientId);
+    }
+
     /** Confirma que o cliente existe (para telas da consultoria). */
     @Transactional(readOnly = true)
     public ClientAccount adminClient(Long clientId) {

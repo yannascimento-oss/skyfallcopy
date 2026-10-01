@@ -18,4 +18,8 @@ public interface ClientAccountRepository extends JpaRepository<ClientAccount, Lo
     boolean existsByRole(Role role);
 
     List<ClientAccount> findByRoleOrderByCompanyAsc(Role role);
+
+    List<ClientAccount> findByRoleOrderByNameAsc(Role role);
+
+    long countByRole(Role role);
 }

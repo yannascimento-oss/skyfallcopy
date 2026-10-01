@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -126,6 +128,28 @@ public class AttachmentService {
         int index = 0;
         for (String part : TextChunker.chunk(pdfText)) {
             chunks.save(new TabChunk(tabId, index++, part));
+        }
+    }
+
+    /** Apaga a pasta de arquivos de um cliente excluído, só depois de a exclusão no banco ser confirmada. */
+    public void deleteClientFilesAfterCommit(Long clientId) {
+        Path dir = dataDir.resolve("attachments").resolve(String.valueOf(clientId)).normalize();
+        Runnable delete = () -> {
+            try (var walk = Files.walk(dir)) {
+                walk.sorted(java.util.Comparator.reverseOrder()).forEach(p -> p.toFile().delete());
+            } catch (IOException ignored) {
+                // Sem a pasta, não há o que apagar.
+            }
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    delete.run();
+                }
+            });
+        } else {
+            delete.run();
         }
     }
 

@@ -121,6 +121,24 @@ public class SettingsService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public boolean hasStoredAiKey() {
+        return repository.findById(AI_KEY).map(AppSetting::getValue).filter(v -> !v.isBlank()).isPresent();
+    }
+
+    /** De onde vem a chave em uso: "database" (tela de administração), "environment" (variável inicial) ou "none". */
+    @Transactional(readOnly = true)
+    public String aiKeySource() {
+        if (hasStoredAiKey()) {
+            return "database";
+        }
+        return envAiKey == null || envAiKey.isBlank() ? "none" : "environment";
+    }
+
+    public String defaultModel() {
+        return defaultModel;
+    }
+
     public static String mask(String key) {
         if (key == null || key.length() <= 11) {
             return "••••";
