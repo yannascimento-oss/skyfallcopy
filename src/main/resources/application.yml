@@ -1,0 +1,57 @@
+# Configuração padrão = produção (PostgreSQL). Para desenvolvimento local use o perfil "dev" (H2).
+spring:
+  application:
+    name: chat-jr
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/chatjr}
+    username: ${DB_USER:chatjr}
+    password: ${DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 26MB
+
+server:
+  port: ${PORT:8080}
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        http-only: true
+        secure: ${CHATJR_COOKIE_SECURE:true}
+        same-site: strict
+  error:
+    include-message: never
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+chatjr:
+  # Chave que cifra segredos gravados no banco (AES-GCM). Obrigatória em produção.
+  secret: ${CHATJR_SECRET:}
+  data-dir: ${CHATJR_DATA:./data}
+  ai:
+    # Valor inicial da chave da IA. Depois do primeiro boot a chave é gerida pela tela de administração.
+    default-key: ${ANTHROPIC_API_KEY:}
+    default-model: ${ANTHROPIC_MODEL:claude-sonnet-4-6}

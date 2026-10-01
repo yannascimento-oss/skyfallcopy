@@ -26,3 +26,13 @@ yarn-debug.log*
 # Build (não usado aqui, mas por precaução)
 dist/
 build/
+
+# Java / Maven
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+hs_err_pid*
+
+# Dados locais da aplicação (banco H2, anexos)
+data/
