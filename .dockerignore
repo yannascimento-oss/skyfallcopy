@@ -1,0 +1,7 @@
+.git
+target
+data
+node_modules
+prototipo-estatico
+docs
+*.md
