@@ -94,4 +94,21 @@ class KnowledgeIndexTest {
         assertEquals(0, empty.total());
         assertEquals(7, empty.perDay().size());
     }
+
+    @Test
+    void frequentQuestionsGroupRepeatsIgnoringAccentCaseAndPunctuation() {
+        Instant now = Instant.parse("2026-10-10T12:00:00Z");
+        var result = IndicatorCalculator.compute(List.of(
+                new IndicatorCalculator.Entry("Qual é o público-alvo?", QueryType.INFORMACAO, true, 1L, null, false, now),
+                new IndicatorCalculator.Entry("qual e o publico alvo", QueryType.INFORMACAO, true, 1L, null, false, now),
+                new IndicatorCalculator.Entry("QUAL É O PÚBLICO-ALVO!!", QueryType.INFORMACAO, true, 1L, null, false, now),
+                new IndicatorCalculator.Entry("Quanto custa?", QueryType.INFORMACAO, false, null, null, false, now),
+                new IndicatorCalculator.Entry("Quanto custa", QueryType.INFORMACAO, false, null, null, false, now),
+                new IndicatorCalculator.Entry("Pergunta única", QueryType.INFORMACAO, false, null, null, false, now)),
+                Map.of(1L, "Mercado"), now, 30);
+        assertEquals(2, result.frequentQuestions().size(), "pergunta que aparece uma vez só não é frequente");
+        assertEquals(3, result.frequentQuestions().get(0).count());
+        assertEquals("Qual é o público-alvo?", result.frequentQuestions().get(0).label(), "mostra a primeira forma digitada");
+        assertEquals(2, result.frequentQuestions().get(1).count());
+    }
 }

@@ -1,5 +1,6 @@
 package org.empresajr.chatjr.domain;
 
+import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -29,7 +30,7 @@ public final class IndicatorCalculator {
 
     public record Result(int total, int answered, int unanswered, int answeredPercent, int degraded,
                          Map<String, Integer> byType, List<Count> topSources, List<Count> topThemes,
-                         List<Unanswered> unansweredQuestions, List<DayCount> perDay, Instant lastQuestionAt,
+                         List<Count> frequentQuestions, List<Unanswered> unansweredQuestions, List<DayCount> perDay, Instant lastQuestionAt,
                          int windowDays) {
     }
 
@@ -51,8 +52,13 @@ public final class IndicatorCalculator {
         Map<String, Integer> sources = new HashMap<>();
         Map<String, Integer> themes = new HashMap<>();
         List<Unanswered> unanswered = new ArrayList<>();
+        Map<String, Integer> questionCounts = new HashMap<>();
+        Map<String, String> questionLabels = new HashMap<>();
 
         for (Entry e : entries) {
+            String key = questionKey(e.question());
+            questionCounts.merge(key, 1, Integer::sum);
+            questionLabels.putIfAbsent(key, e.question());
             byType.merge(e.type(), 1, Integer::sum);
             if (e.degraded()) {
                 degraded++;
@@ -79,9 +85,23 @@ public final class IndicatorCalculator {
         byType.forEach((type, n) -> byTypeNames.put(type.name(), n));
 
         return new Result(total, answered, total - answered, total == 0 ? 0 : Math.round(answered * 100f / total),
-                degraded, byTypeNames, top(sources), top(themes),
+                degraded, byTypeNames, top(sources), top(themes), frequent(questionCounts, questionLabels),
                 unanswered.size() <= UNANSWERED_LIMIT ? unanswered : unanswered.subList(0, UNANSWERED_LIMIT),
                 perDay(entries, now, Math.min(windowDays, CHART_DAYS)), last, windowDays);
+    }
+
+    /** Perguntas repetidas (2 vezes ou mais), ignorando acento, maiúsculas e pontuação. */
+    private static List<Count> frequent(Map<String, Integer> counts, Map<String, String> labels) {
+        return counts.entrySet().stream()
+                .filter(e -> e.getValue() >= 2)
+                .map(e -> new Count(labels.get(e.getKey()), e.getValue()))
+                .sorted(Comparator.comparingInt(Count::count).reversed().thenComparing(Count::label))
+                .limit(TOP).toList();
+    }
+
+    static String questionKey(String question) {
+        String n = Normalizer.normalize(question == null ? "" : question, Normalizer.Form.NFD).replaceAll("\\p{M}+", "");
+        return n.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", " ").trim();
     }
 
     private static List<Count> top(Map<String, Integer> counts) {

@@ -24,7 +24,8 @@ public class SecurityConfig {
 
     private static final String CONTENT_SECURITY_POLICY = String.join("; ",
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline'",
+            // Só scripts do próprio site: a interface não usa onclick nem <script> em linha (há teste de guarda para isso).
+            "script-src 'self'",
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data:",
             "font-src 'self'",

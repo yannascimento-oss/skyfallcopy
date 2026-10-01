@@ -78,6 +78,9 @@ class SessionCookieTest extends AbstractIntegrationTest {
         assertNotNull(csp);
         assertTrue(csp.contains("default-src 'self'"));
         assertTrue(csp.contains("frame-ancestors 'none'"));
+        String scriptSrc = java.util.Arrays.stream(csp.split(";")).map(String::trim)
+                .filter(d -> d.startsWith("script-src")).findFirst().orElseThrow();
+        assertEquals("script-src 'self'", scriptSrc, "scripts só do próprio site, sem unsafe-inline nem unsafe-eval");
     }
 
     @Test
