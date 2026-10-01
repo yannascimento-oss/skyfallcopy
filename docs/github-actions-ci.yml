@@ -1,65 +1,39 @@
-# Integração contínua do Chat Jr: compila, roda todos os testes e publica um resumo legível.
-# Para ativar: crie o arquivo .github/workflows/ci.yml com este conteúdo (veja docs/README-CI.md).
 name: CI
-
 on:
   push:
     branches: ['**']
-  pull_request:
-
 permissions:
-  contents: write   # necessário para publicar o resumo na branch ci-logs
-
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
           cache: maven
-
-      - name: Compilar e testar (mvn verify)
+      - name: mvn verify
         id: mvn
         run: |
           set -o pipefail
           mvn -B -ntp verify 2>&1 | tee build.log
-
       - name: Publicar resumo na branch ci-logs
         if: always()
         run: |
           set +e
-          OUT=/tmp/resumo.txt
           {
-            echo "commit:    ${GITHUB_SHA}"
-            echo "branch:    ${GITHUB_REF_NAME}"
-            echo "execução:  ${GITHUB_RUN_ID}"
-            echo "resultado: ${{ steps.mvn.outcome }}"
-            echo
-            echo "=== linhas-chave do Maven ==="
-            grep -E "Tests run:|BUILD|ERROR|FAIL|COMPILATION|Could not|Failed to" build.log | head -200
-            echo
-            echo "=== testes que falharam (detalhe) ==="
-            for f in $(grep -l -E "FAILURE|ERROR" target/surefire-reports/*.txt 2>/dev/null); do echo "--- $f"; head -80 "$f"; done
-            echo
-            echo "=== fim do log (últimas 250 linhas) ==="
-            tail -250 build.log
-          } > "$OUT"
-          git config user.name  "github-actions"
-          git config user.email "actions@users.noreply.github.com"
+            echo "commit: $GITHUB_SHA  branch: $GITHUB_REF_NAME  resultado: ${{ steps.mvn.outcome }}"
+            grep -E "Tests run:|BUILD|ERROR|FAIL" build.log | head -250
+            for f in $(grep -l -E "FAILURE|ERROR" target/surefire-reports/*.txt 2>/dev/null); do echo "--- $f"; head -60 "$f"; done
+            echo "=== fim do log ==="; tail -150 build.log
+          } > /tmp/resumo.txt
+          git config user.name github-actions
+          git config user.email actions@users.noreply.github.com
           git fetch origin ci-logs 2>/dev/null
-          if git rev-parse --verify origin/ci-logs >/dev/null 2>&1; then
-            git checkout -q -B ci-logs origin/ci-logs
-          else
-            git checkout -q --orphan ci-logs
-            git rm -rfq . 2>/dev/null
-          fi
-          mkdir -p resumos
-          cp "$OUT" "resumos/${GITHUB_SHA}.txt"
-          git add resumos
-          git commit -q -m "resumo do CI ${GITHUB_SHA}"
+          if git rev-parse --verify origin/ci-logs >/dev/null 2>&1; then git checkout -q -B ci-logs origin/ci-logs; else git checkout -q --orphan ci-logs; git rm -rfq . ; fi
+          mkdir -p resumos && cp /tmp/resumo.txt resumos/$GITHUB_SHA.txt
+          git add resumos && git commit -q -m "resumo $GITHUB_SHA"
           for i in 1 2 3; do git push -q origin ci-logs && break; git pull -q --rebase origin ci-logs; done
