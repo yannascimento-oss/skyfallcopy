@@ -85,6 +85,9 @@ public class SecurityConfig {
                                     : "Você não tem permissão para esta ação.")))
             .headers(headers -> headers
                     .frameOptions(HeadersConfigurer.FrameOptionsConfig::deny)
+                    // Cache decidido por tipo de conteúdo: a API fica no-store (ApiNoStoreFilter) e os arquivos
+                    // estáticos são revalidados (spring.web.resources.cache), em vez de baixados de novo a cada visita.
+                    .cacheControl(HeadersConfigurer.CacheControlConfig::disable)
                     .contentSecurityPolicy(csp -> csp.policyDirectives(CONTENT_SECURITY_POLICY))
                     .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN)))
             .formLogin(AbstractHttpConfigurer::disable)

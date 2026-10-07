@@ -69,4 +69,26 @@ class FrontendServingTest extends AbstractIntegrationTest {
         assertTrue(response.getStatusCode().is4xxClientError());
         assertTrue(response.getHeaders().getContentType() == null || !response.getHeaders().getContentType().isCompatibleWith(MediaType.TEXT_HTML));
     }
+
+    @Test
+    void staticFilesAreRevalidatedInsteadOfDownloadedAgain() {
+        HttpHeaders first = rest.getForEntity("/js/main.js", String.class).getHeaders();
+        String cache = first.getCacheControl();
+        assertNotNull(cache);
+        assertTrue(cache.contains("no-cache") && !cache.contains("no-store"), "arquivo estático deve ser revalidado, não descartado: " + cache);
+        assertTrue(first.getLastModified() > 0, "sem Last-Modified não há como revalidar");
+
+        HttpHeaders conditional = new HttpHeaders();
+        conditional.setIfModifiedSince(first.getLastModified());
+        ResponseEntity<String> again = rest.exchange("/js/main.js", org.springframework.http.HttpMethod.GET,
+                new org.springframework.http.HttpEntity<>(conditional), String.class);
+        assertEquals(304, again.getStatusCode().value(), "arquivo que não mudou volta como 304, sem corpo");
+    }
+
+    @Test
+    void apiResponsesAreNeverStored() {
+        String cache = rest.getForEntity("/api/setup/status", String.class).getHeaders().getCacheControl();
+        assertNotNull(cache);
+        assertTrue(cache.contains("no-store"), "respostas da API não podem ficar guardadas: " + cache);
+    }
 }

@@ -96,6 +96,6 @@ teste de navegador da jornada completa duas vezes, com IA simulada: contra o jar
 A correspondência entre os 22 defeitos do briefing e o código está em [`docs/ENTREGA.md`](docs/ENTREGA.md).
 
 Limites conhecidos: o envio de e-mail não existe (convites e redefinição de senha são links que a consultoria copia e
-envia); os arquivos estáticos não são guardados em cache pelo navegador (o Spring Security marca tudo como `no-store`),
-o que custa cerca de 500 KB por visita. Atrás de proxy reverso (Easypanel, nginx), o sistema usa o IP repassado pelo
+envia). Os arquivos da interface ficam guardados no navegador e são só revalidados a cada visita (304 quando não mudaram);
+as respostas da API nunca são guardadas. Atrás de proxy reverso (Easypanel, nginx), o sistema usa o IP repassado pelo
 proxy só quando a conexão vem de rede interna (`server.forward-headers-strategy: native`).

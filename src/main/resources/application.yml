@@ -1,5 +1,12 @@
 # Configuração padrão = produção (PostgreSQL). Para desenvolvimento local use o perfil "dev" (H2).
 spring:
+  # Arquivos da interface: o navegador guarda e revalida (304 quando não mudou). A API é no-store (ApiNoStoreFilter).
+  web:
+    resources:
+      cache:
+        use-last-modified: true
+        cachecontrol:
+          no-cache: true
   application:
     name: chat-jr
   threads:
