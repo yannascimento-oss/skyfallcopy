@@ -1,5 +1,7 @@
 package org.empresajr.chatjr.web;
 
+import org.empresajr.chatjr.service.BrandingService;
+
 import jakarta.validation.Valid;
 import org.empresajr.chatjr.service.SettingsService;
 import org.empresajr.chatjr.service.SetupService;
@@ -19,15 +21,17 @@ public class SetupController {
 
     private final SetupService setup;
     private final SettingsService settings;
+    private final BrandingService branding;
 
-    public SetupController(SetupService setup, SettingsService settings) {
+    public SetupController(SetupService setup, SettingsService settings, BrandingService branding) {
         this.setup = setup;
         this.settings = settings;
+        this.branding = branding;
     }
 
     @GetMapping("/status")
     public SetupStatusResponse status() {
-        return new SetupStatusResponse(!settings.isSetupDone(), settings.get(SettingsService.ORG_NAME).orElse(null));
+        return new SetupStatusResponse(!settings.isSetupDone(), settings.get(SettingsService.ORG_NAME).orElse(null), branding.hasLogo());
     }
 
     @PostMapping

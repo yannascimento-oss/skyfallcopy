@@ -43,11 +43,12 @@ export async function render(root) {
         : '<p class="empty-note" style="margin:0;">Nenhum erro registrado. Tudo certo.</p>'}</section>
     <section class="block" aria-labelledby="sy5"><h2 class="sec-title" id="sy5">Últimas chamadas à IA</h2>
       ${s.recentCalls.length ? `<div class="card admin-table-wrap"><div class="table-scroll"><table class="admin-table"><caption class="sr-only">Últimas chamadas à IA</caption>
-        <thead><tr><th scope="col">Quando</th><th scope="col">Tipo</th><th scope="col">Resultado</th><th scope="col">Tempo</th><th scope="col">Tokens</th><th scope="col">Observação</th></tr></thead>
+        <thead><tr><th scope="col">Quando</th><th scope="col">Tipo</th><th scope="col">Resultado</th><th scope="col">Tempo</th><th scope="col">Tokens</th><th scope="col">Custo estimado</th><th scope="col">Observação</th></tr></thead>
         <tbody>${s.recentCalls.map((c) => `<tr><td data-label="Quando">${esc(fmtDateTime(c.at))}</td><td data-label="Tipo">${esc(c.kind)}</td>
           <td data-label="Resultado"><span class="pill ${c.status === 'OK' ? 'teal' : c.status === 'ERROR' ? 'red' : 'amber'}">${esc(c.status)}</span></td>
           <td data-label="Tempo">${c.durationMs == null ? '—' : esc(c.durationMs + ' ms')}</td>
           <td data-label="Tokens">${c.inputTokens == null ? '—' : esc(c.inputTokens + ' / ' + c.outputTokens)}</td>
+          <td data-label="Custo estimado">${c.estCostMicroUsd == null ? '—' : esc(fmtUsd(c.estCostMicroUsd))}</td>
           <td data-label="Observação" class="detail">${esc(c.error || '')}</td></tr>`).join('')}</tbody></table></div></div>`
         : '<p class="empty-note" style="margin:0;">Nenhuma chamada à IA ainda.</p>'}</section>`;
 }

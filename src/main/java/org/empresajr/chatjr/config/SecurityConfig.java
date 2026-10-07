@@ -70,7 +70,7 @@ public class SecurityConfig {
             .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/setup/**", "/api/auth/csrf", "/api/auth/login",
-                            "/api/auth/logout", "/api/auth/accept-invite").permitAll()
+                            "/api/auth/logout", "/api/auth/accept-invite", "/api/access-requests", "/api/public/**").permitAll()
                     .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .requestMatchers("/api/chat/**").hasRole("CLIENT")

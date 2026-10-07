@@ -108,6 +108,54 @@ public class PlanService {
                 .filter(t -> isVisibleToClient(t, blocked)).toList();
     }
 
+    /** Quanto do plano já está disponível: etapas publicadas e liberadas, sobre as etapas liberadas para o cliente. */
+    @Transactional(readOnly = true)
+    public PlanProgress progress(AccountPrincipal who, Long clientId) {
+        checkAccess(who, clientId);
+        requireClient(clientId);
+        Set<Long> blocked = blockedTabIds(clientId);
+        List<PlanTab> allowed = tabs.findByClientIdOrderBySortOrderAscIdAsc(clientId).stream()
+                .filter(t -> !blocked.contains(t.getId())).toList();
+        int available = (int) allowed.stream().filter(PlanTab::isPublished).count();
+        return new PlanProgress(allowed.size(), available);
+    }
+
+    public record PlanProgress(int total, int available) {
+    }
+
+    /**
+     * Importa um plano exportado em JSON: cada etapa casa pelo nome (sem diferenciar maiúsculas); a que não existe é
+     * criada. O conteúdo anterior de cada etapa vira versão, como em qualquer edição. A publicação não muda.
+     */
+    @Transactional
+    public ImportResult importPlan(Long clientId, List<UpdateTabRequest> incoming, List<String> names) {
+        requireClient(clientId);
+        int created = 0;
+        int updated = 0;
+        for (int i = 0; i < incoming.size(); i++) {
+            String name = names.get(i).trim();
+            PlanTab tab = tabs.findByClientIdOrderBySortOrderAscIdAsc(clientId).stream()
+                    .filter(t -> t.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
+            Long tabId;
+            if (tab == null) {
+                tabId = createTab(clientId, name).id();
+                created++;
+            } else {
+                tabId = tab.getId();
+            }
+            UpdateTabRequest r = incoming.get(i);
+            updateTab(clientId, tabId, new UpdateTabRequest(r.title() == null || r.title().isBlank() ? name : r.title(),
+                    r.html(), r.shortDescription(), r.whatIsIt(), r.objective(), r.keyPoints(), r.suggestedQuestions(),
+                    r.source(), null));
+            updated++;
+        }
+        audit.record("PLAN_IMPORTED", clientId, null, null, updated + " etapa(s), " + created + " nova(s)");
+        return new ImportResult(updated, created);
+    }
+
+    public record ImportResult(int imported, int created) {
+    }
+
     // ---------- gestão (só consultoria) ----------
 
     @Transactional

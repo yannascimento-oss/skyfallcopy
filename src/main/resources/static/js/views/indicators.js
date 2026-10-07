@@ -1,6 +1,7 @@
 /* Indicadores calculados das perguntas reais. O cliente vê os próprios; a consultoria vê o geral ou o de um cliente. */
 import { api } from '../api.js';
 import { esc, pct, fmtDateTime, onChange } from '../ui.js';
+import { subject } from '../main.js';
 
 let S = null;
 
@@ -17,8 +18,12 @@ function bars(items, total, emptyText) {
 }
 
 export async function render(root, { me, arg }) {
-  S = { root, me, days: 30, clientId: me.role === 'ADMIN' && arg ? arg : '', clients: [] };
-  if (me.role === 'ADMIN') S.clients = await api.get('/api/admin/clients');
+  const who = subject();
+  // No modo "ver como o cliente", a tela é a do cliente, com os dados desse cliente.
+  const consultancy = me.role === 'ADMIN' && !who.viewAs;
+  me = consultancy ? me : { ...me, role: 'CLIENT' };
+  S = { root, me, who, consultancy, days: 30, clientId: consultancy && arg ? arg : '', clients: [] };
+  if (consultancy) S.clients = await api.get('/api/admin/clients');
   const header = `
     <div class="section-head"><h1>Indicadores</h1>
       <p>${me.role === 'ADMIN' ? 'O que os clientes estão tentando entender nos planos, e onde o conteúdo ainda pode ficar mais claro.' : 'O que você mais consulta no plano, e onde ele ainda pode ficar mais claro.'}</p></div>
@@ -36,7 +41,8 @@ export async function render(root, { me, arg }) {
 }
 
 function url() {
-  if (S.me.role !== 'ADMIN') return `/api/chat/indicators?days=${S.days}`;
+  if (S.who.viewAs) return `/api/admin/clients/${S.who.id}/indicators?days=${S.days}`;
+  if (!S.consultancy) return `/api/chat/indicators?days=${S.days}`;
   return S.clientId ? `/api/admin/clients/${S.clientId}/indicators?days=${S.days}` : `/api/admin/indicators?days=${S.days}`;
 }
 
@@ -47,7 +53,11 @@ async function paint() {
   if (!body) return;
   body.innerHTML = '<p class="skeleton">Carregando…</p>';
   let d;
-  try { d = await api.get(url()); } catch (error) {
+  let progress = null;
+  const progressFor = S.consultancy ? S.clientId : S.who.id;
+  try {
+    [d, progress] = await Promise.all([api.get(url()), progressFor ? api.get(`/api/clients/${progressFor}/progress`) : Promise.resolve(null)]);
+  } catch (error) {
     if (S !== mine) return;
     body.innerHTML = `<div class="form-error" role="alert">${esc(error.message)}</div>`; return;
   }
@@ -61,6 +71,7 @@ async function paint() {
     ['Respostas por busca direta (sem IA)', String(d.degraded)],
     ['Última consulta', d.lastQuestionAt ? fmtDateTime(d.lastQuestionAt) : '—'],
   ];
+  if (progress) rows.unshift(['Etapas publicadas', `${progress.available} de ${progress.total}`]);
   const peak = Math.max(1, ...d.perDay.map((x) => x.count));
   body.innerHTML = `
     <section class="block" aria-labelledby="i1"><h2 class="sec-title" id="i1">Resumo</h2>

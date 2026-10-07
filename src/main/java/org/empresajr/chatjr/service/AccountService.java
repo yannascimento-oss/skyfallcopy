@@ -162,6 +162,16 @@ public class AccountService {
         attachmentService.deleteClientFilesAfterCommit(clientId);
     }
 
+    /** Promove um cliente a administrador. Quem já é administrador não passa por aqui (404). */
+    @Transactional
+    public ClientAccount promoteToAdmin(Long clientId) {
+        ClientAccount account = requireClient(clientId);
+        account.promoteToAdmin();
+        accounts.save(account);
+        audit.record("ADMIN_PROMOTED", clientId, null, null, account.getEmail());
+        return account;
+    }
+
     // ---------- administradores ----------
 
     @Transactional(readOnly = true)

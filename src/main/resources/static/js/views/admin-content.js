@@ -3,6 +3,7 @@ import { api } from '../api.js';
 import {
   esc, fmtBytes, fmtDateTime, onChange, onClick, onInput, onSubmit, openModal, confirmDialog, toast, withBusy,
 } from '../ui.js';
+import { enterViewAs } from '../main.js';
 
 let S = null;
 let timer = null;
@@ -24,6 +25,8 @@ export async function render(root, { arg }) {
     <div class="field ct-client-pick"><label for="ct-client">Cliente</label>
       <select id="ct-client" data-change="ct-client">${S.clients.map((c) =>
         `<option value="${c.id}"${c.id === S.clientId ? ' selected' : ''}>${esc(c.company || c.name)}</option>`).join('')}</select></div>
+    <div class="ct-toolbar" id="ct-toolbar"></div>
+    <input type="file" id="ct-import-file" class="file-input-hidden" accept="application/json,.json" tabindex="-1" aria-label="Escolher arquivo JSON do plano" data-change="ct-import-file">
     <div class="ct-summary" id="ct-summary"></div>
     <div class="ct-layout"><div class="ct-list" id="ct-list"></div><div class="ct-detail" id="ct-detail"></div></div>`;
   await loadClient();
@@ -37,9 +40,21 @@ async function loadClient(keepTab) {
   const tabs = await api.get(`/api/clients/${S.clientId}/tabs`);
   if (S !== mine) return;
   S.tabs = tabs;
+  paintToolbar();
   const wanted = keepTab && S.tabs.some((t) => t.id === keepTab) ? keepTab : (S.tabs[0] && S.tabs[0].id);
   paintList();
   if (wanted) await selectTab(wanted, true); else document.getElementById('ct-detail').innerHTML = '';
+}
+
+function paintToolbar() {
+  const bar = document.getElementById('ct-toolbar');
+  if (!bar) return;
+  const id = S.clientId;
+  bar.innerHTML = `
+    <button class="btn blue small" type="button" data-action="ct-view-as">Ver como o cliente</button>
+    <a class="btn small" href="/api/clients/${id}/export.pdf" download>Baixar PDF</a>
+    <a class="btn small" href="/api/clients/${id}/export.json" download>Baixar JSON</a>
+    <button class="btn small" type="button" data-action="ct-import">Importar JSON</button>`;
 }
 
 function tabStatus(t) {
@@ -258,18 +273,64 @@ onClick('ct-restore', async (el) => {
   catch (error) { toast(error.message, 'error'); }
 });
 
-onClick('att-pick', () => { const input = document.getElementById('att-file'); if (input) { input.value = ''; input.click(); } });
-onChange('att-file', async (el) => {
+onClick('ct-view-as', () => {
+  const client = S && S.clients.find((c) => c.id === S.clientId);
+  if (client) enterViewAs(client);
+});
+onClick('ct-import', () => { const input = document.getElementById('ct-import-file'); if (input) { input.value = ''; input.click(); } });
+onChange('ct-import-file', async (el) => {
   const file = el.files && el.files[0];
-  if (!file) return;
+  if (!file || !S) return;
+  let data;
+  try { data = JSON.parse(await file.text()); } catch (e) { toast('Esse arquivo não é um JSON válido.', 'error'); return; }
+  const tabs = Array.isArray(data) ? data : data && data.tabs;
+  if (!Array.isArray(tabs) || !tabs.length) { toast('O arquivo não tem etapas para importar.', 'error'); return; }
+  const client = S.clients.find((c) => c.id === S.clientId);
+  const ok = await confirmDialog({ title: 'Importar plano',
+    message: `Importar ${tabs.length} etapa(s) para ${client ? client.company : 'este cliente'}? Etapas com o mesmo nome terão o conteúdo substituído (o anterior fica em "Versões anteriores"); as demais são criadas. Nada é publicado automaticamente.`,
+    confirmLabel: 'Importar' });
+  if (!ok) return;
+  try {
+    const result = await api.post(`/api/admin/clients/${S.clientId}/tabs/import`, { tabs });
+    toast(`${result.imported} etapa(s) importada(s), ${result.created} nova(s).`, 'ok');
+    S.dirty = false;
+    await loadClient(S.tabId);
+  } catch (error) { toast(error.message, 'error'); }
+});
+
+onClick('att-pick', () => { const input = document.getElementById('att-file'); if (input) { input.value = ''; input.click(); } });
+async function uploadPdf(file) {
+  if (!S) return;
+  const mine = S;
+  const tabId = S.tabId;
   const pick = document.querySelector('[data-action="att-pick"]');
   if (pick) { pick.disabled = true; pick.textContent = 'Enviando…'; }
+  const panel = document.getElementById('att-panel');
+  if (panel) {
+    panel.insertAdjacentHTML('beforeend', `<div class="upload-progress" id="upload-progress" role="progressbar" aria-label="Envio do PDF" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="track"><div class="fill"></div></div><span>0%</span></div>`);
+  }
+  const show = (fraction) => {
+    const bar = document.getElementById('upload-progress');
+    if (!bar) return;
+    const p = Math.round(fraction * 100);
+    bar.querySelector('.fill').style.width = p + '%';
+    bar.querySelector('span').textContent = p < 100 ? p + '%' : 'Lendo o PDF…';
+    bar.setAttribute('aria-valuenow', String(p));
+  };
   try {
-    S.att = await api.upload(`${base()}/${S.tabId}/attachment`, file);
+    const att = await api.uploadWithProgress(`${base()}/${tabId}/attachment`, file, show);
+    if (S !== mine || S.tabId !== tabId) return;
+    S.att = att;
     paintAttachment();
     toast('PDF anexado. Agora é só processar.', 'ok');
-  } catch (error) { paintAttachment(); toast(error.message, 'error'); }
-});
+  } catch (error) {
+    if (S !== mine) return;
+    paintAttachment();
+    toast(error.message, 'error', error.status === 0 || error.status >= 500 ? { label: 'Tentar de novo', run: () => uploadPdf(file) } : null);
+  }
+}
+onChange('att-file', (el) => { const file = el.files && el.files[0]; if (file) uploadPdf(file); });
 onClick('att-remove', async () => {
   const ok = await confirmDialog({ title: 'Remover PDF', message: 'O arquivo e o texto lido dele serão apagados e o chat deixa de consultá-lo. O conteúdo já escrito na etapa permanece.', confirmLabel: 'Remover', danger: true });
   if (!ok) return;
@@ -280,9 +341,14 @@ onSubmit('att-link', async (form) => {
   try { S.att = await api.put(`${base()}/${S.tabId}/attachment/link`, { slideLink: form.link.value.trim() }); paintAttachment(); toast('Link salvo.', 'ok'); }
   catch (error) { toast(error.message, 'error'); }
 });
-onClick('att-process', async (el) => {
+async function startProcessing(el) {
+  if (!S) return;
   await withBusy(el, 'Iniciando…', async () => {
     try { S.att = await api.post(`${base()}/${S.tabId}/attachment/process`, {}); paintAttachment(); startPolling(); }
-    catch (error) { toast(error.message, 'error'); }
+    catch (error) {
+      toast(error.message, 'error', error.status === 0 || error.status >= 500
+        ? { label: 'Tentar de novo', run: () => startProcessing(document.querySelector('[data-action="att-process"]')) } : null);
+    }
   });
-});
+}
+onClick('att-process', (el) => startProcessing(el));

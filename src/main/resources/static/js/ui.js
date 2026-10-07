@@ -59,15 +59,31 @@ export function debounce(fn, ms = 250) {
 
 /* ---------------- avisos ---------------- */
 
-export function toast(message, kind = '') {
+/**
+ * Aviso no canto da tela. Com action ({ label, run }), mostra um botão (ex.: "Tentar de novo") e fica mais tempo.
+ */
+export function toast(message, kind = '', action = null) {
   const box = document.getElementById('toasts');
   if (!box) return;
   const el = document.createElement('div');
   el.className = 'toast' + (kind ? ' ' + kind : '');
-  el.textContent = message;
+  const text = document.createElement('span');
+  text.textContent = message;
+  el.appendChild(text);
+  const close = () => { el.classList.add('out'); setTimeout(() => el.remove(), 300); };
+  if (action) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'toast-action';
+    button.textContent = action.label || 'Tentar de novo';
+    button.addEventListener('click', () => { close(); action.run(); });
+    el.appendChild(button);
+  }
   box.appendChild(el);
-  const ttl = kind === 'error' ? 8000 : 4500;
-  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, ttl);
+  // No máximo três avisos visíveis: os mais antigos saem primeiro.
+  const visible = Array.from(box.children).filter((t) => !t.classList.contains('out'));
+  visible.slice(0, Math.max(0, visible.length - 3)).forEach((t) => { t.classList.add('out'); setTimeout(() => t.remove(), 300); });
+  setTimeout(close, action ? 12000 : kind === 'error' ? 8000 : 4500);
 }
 
 /* ---------------- delegação de eventos ---------------- */

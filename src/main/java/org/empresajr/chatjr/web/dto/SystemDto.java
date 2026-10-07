@@ -23,7 +23,8 @@ public final class SystemDto {
     }
 
     public record CallItem(Instant at, String kind, String status, Integer httpStatus, Integer durationMs,
-                           Integer inputTokens, Integer outputTokens, String model, String error) {
+                           Integer inputTokens, Integer outputTokens, String model, String error,
+                           Long estCostMicroUsd) {
     }
 
     public record Overview(String version, String javaVersion, String database, long uptimeSeconds, Disk disk,

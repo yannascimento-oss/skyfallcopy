@@ -771,3 +771,30 @@ a.btn{display:inline-block;}
 .ct-detail .attach-panel.ct-block{padding:20px 0 0;margin-bottom:0;}
 .mobile-conv{display:none;}
 @media (max-width:640px){.mobile-conv{display:flex;gap:8px;margin-top:10px;align-items:center;}.mobile-conv select{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:inherit;font-size:13px;}}
+
+/* ===== Fechamento da Fase 2 ===== */
+.toast{display:flex;align-items:center;gap:12px;}
+.toast span{flex:1;}
+.toast-action{flex-shrink:0;background:transparent;border:1px solid currentColor;color:inherit;border-radius:7px;padding:5px 10px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;}
+.toast-action:focus-visible{outline:2px solid currentColor;outline-offset:2px;}
+.upload-progress{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:var(--muted);}
+.upload-progress .track{flex:1;height:8px;border-radius:6px;background:var(--line);overflow:hidden;}
+.upload-progress .fill{height:100%;width:0;background:var(--jr-blue);border-radius:6px;transition:width .15s ease;}
+.nav-badge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--jr-yellow);color:var(--jr-navy);font-size:11.5px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;}
+.request-list{display:grid;gap:12px;margin-bottom:22px;}
+.request-card{padding:16px 18px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;border-left:4px solid var(--jr-yellow);}
+.request-card .who{flex:1 1 260px;min-width:0;}
+.request-card .who b{display:block;font-size:14.5px;}
+.request-card .who span{display:block;font-size:13px;color:var(--muted);overflow-wrap:anywhere;}
+.request-card .msg{font-size:13px;margin-top:6px;color:var(--ink);overflow-wrap:anywhere;}
+.request-card .actions{display:flex;gap:8px;flex-wrap:wrap;}
+.progress-card .sub b{color:var(--ink);}
+.tab-chip{text-decoration:none;color:inherit;}
+.logo-preview{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.logo-preview img{width:56px;height:56px;object-fit:contain;border-radius:12px;border:1px solid var(--line);background:#fff;padding:4px;}
+.ct-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.calls-table td,.calls-table th{font-size:12.5px;}
+.hp-field{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;}
+.auth-note .link-btn{font-size:inherit;}
+/* O aviso sai deslizando e some de vez: nada fica meio transparente na tela (contraste AA o tempo todo). */
+.toast.out{opacity:1;visibility:hidden;transform:translateY(8px);transition:transform .2s ease,visibility 0s linear .2s;}

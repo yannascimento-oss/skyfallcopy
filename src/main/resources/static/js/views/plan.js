@@ -1,13 +1,18 @@
 /* Plano de negócios: cada etapa lida como um documento, com busca no texto e exportação. */
 import { api } from '../api.js';
 import { esc, fmtDateTime, onClick, onInput, stripHtml, debounce } from '../ui.js';
+import { subject } from '../main.js';
 
 let S = null;
 
 function section(title, inner) { return `<section class="stage-sec"><h3>${esc(title)}</h3>${inner}</section>`; }
 
-export async function render(root, { me, arg }) {
-  const tabs = await api.get(`/api/clients/${me.id}/tabs`);
+export async function render(root, { arg }) {
+  const who = subject();
+  const all = await api.get(`/api/clients/${who.id}/tabs`);
+  // No modo "ver como o cliente", a consultoria recebe tudo; mostramos só o que o cliente vê.
+  const tabs = who.viewAs ? all.filter((t) => t.published && t.allowed !== false) : all;
+  const me = { id: who.id, company: who.company };
   S = { root, me, tabs, details: new Map(), activeId: null, term: '' };
   const exportLinks = `
     <div class="row-flex">
@@ -15,8 +20,8 @@ export async function render(root, { me, arg }) {
       <a class="btn" href="/api/clients/${me.id}/export.json" download>Baixar JSON</a>
     </div>`;
   if (!tabs.length) {
-    root.innerHTML = `<div class="section-head"><h1>Plano de negócios</h1><p>Leia cada etapa do seu plano.</p></div>
-      <div class="card" style="padding:26px;"><p class="empty-note" style="margin:0;">Seu plano ainda não tem etapas publicadas. Assim que a consultoria liberar a primeira, ela aparece aqui.</p></div>`;
+    root.innerHTML = `<div class="section-head"><h1>Plano de negócios</h1><p>Leia cada etapa do plano.</p></div>
+      <div class="card" style="padding:26px;"><p class="empty-note" style="margin:0;">O plano ainda não tem etapas publicadas. Assim que a consultoria liberar a primeira, ela aparece aqui.</p></div>`;
     return;
   }
   root.innerHTML = `
@@ -78,7 +83,7 @@ async function select(id) {
       <p class="stage-updated">${tab.source ? `Fonte: ${esc(tab.source)} · ` : ''}Atualizado em ${esc(fmtDateTime(tab.contentUpdatedAt))}</p>
     </article>`;
   } catch (error) {
-    if (S === mine) wrap.innerHTML = `<div class="form-error" role="alert">${esc(error.message)}</div>`;
+    if (S === mine) wrap.innerHTML = `<div class="card err-card"><p>${esc(error.message)}</p><button class="btn blue" type="button" data-action="plan-select" data-id="${id}">Tentar de novo</button></div>`;
   }
 }
 

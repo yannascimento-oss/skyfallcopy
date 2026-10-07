@@ -21,13 +21,20 @@ administrador (e-mail e senha) e, se quiser, a chave da IA. Nada mais é configu
 | `DB_PASSWORD` | Senha do PostgreSQL. **Obrigatória** |
 | `CHATJR_SECRET` | Texto aleatório de 32+ caracteres que cifra a chave da IA no banco. **Obrigatória.** Gere com `openssl rand -base64 48` e guarde: sem ela a chave da IA gravada não pode ser lida (basta cadastrá-la de novo) |
 | `CHATJR_COOKIE_SECURE` | `true` (padrão) exige HTTPS, exceto em localhost. Use `false` só se publicar sem HTTPS |
-| `ANTHROPIC_API_KEY` | Opcional. Valor inicial da chave; depois é gerida na tela **Integração de IA** |
+| `ANTHROPIC_API_KEY` | Opcional. Valor inicial da chave; depois é gerida em **Configurações** |
 
 ## Dia a dia
 
 - **Convites:** o sistema não envia e-mail. Ao criar um cliente ou administrador, copie o link do convite e envie você
   mesmo. Ele vale 48 horas e só funciona uma vez.
-- **Chave da IA, modelo, limites e custo estimado:** telas **Integração de IA** e **Sistema** (inclui "testar conexão").
+- **Chave da IA, modelo e limites:** tela **Configurações** (inclui "Testar conexão", as últimas 20 chamadas com custo
+  estimado e o logo da consultoria); uso e custo dos últimos 30 dias na tela **Sistema**.
+- **Pedidos de acesso:** quem não tem acesso usa "Solicitar acesso" na página inicial. O pedido aparece em
+  **Clientes & Planos** (o menu mostra quantos estão em aberto); "Criar acesso" já preenche o cadastro.
+- **Ver como o cliente:** em **Clientes & Planos → Acesso** ou em **Conteúdo dos planos**, abre o painel exatamente como
+  o cliente vê, com faixa amarela de aviso. O chat do cliente não aparece: as conversas são privadas.
+- **Dados:** em **Conteúdo dos planos**, baixe o plano em PDF ou JSON e importe um JSON exportado (as etapas casam pelo
+  nome; o conteúdo anterior vai para "Versões anteriores"; nada é publicado sozinho).
 - **Sem IA:** se a chave faltar ou a API falhar, o cliente recebe os trechos do próprio plano mais próximos da pergunta, e
   o processamento de PDF gera o conteúdo sem reescrita. O sistema continua utilizável.
 - **Backup:** guarde o banco e os arquivos.
@@ -83,9 +90,11 @@ A cobertura de testes de `domain` e `service` é verificada no build (mínimo de
 
 ## Estado
 
-Fase 2 concluída: backend e interface ligados e testados. O CI roda 181 testes Java (contra PostgreSQL real) e o teste de
-navegador da jornada completa contra o jar real, com IA simulada.
+Fase 2 concluída: backend e interface ligados e testados. O CI roda os testes Java (contra PostgreSQL real) e o teste de
+navegador da jornada completa contra o jar real, com IA simulada. A correspondência entre os 22 defeitos do briefing e o
+código está em [`docs/ENTREGA.md`](docs/ENTREGA.md).
 
 Limites conhecidos: o envio de e-mail não existe (convites e redefinição de senha são links que a consultoria copia e
 envia); o `Dockerfile` e o `docker-compose.yml` não foram executados ainda; os arquivos estáticos não são guardados em
-cache pelo navegador (o Spring Security marca tudo como `no-store`), o que custa cerca de 500 KB por visita.
+cache pelo navegador (o Spring Security marca tudo como `no-store`), o que custa cerca de 500 KB por visita; o limite de pedidos de acesso por origem (5 por hora) usa o endereço que chega
+ao servidor, então atrás de um proxy reverso configure `server.forward-headers-strategy=native` para valer por visitante.

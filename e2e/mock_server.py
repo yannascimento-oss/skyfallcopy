@@ -54,6 +54,8 @@ class Store:
         self.seq = 0; self.accounts = {}; self.tabs = {}; self.blocked = set(); self.versions = {}; self.atts = {}
         self.convs = {}; self.msgs = {}; self.queries = []; self.audit = []; self.errors = []; self.calls = []
         self.sessions = {}
+        self.requests = []
+        self.logo = None
         self.settings = {'setup': False, 'org': None, 'aiKey': None, 'model': 'claude-sonnet-4-6', 'maxTokens': 3000,
                          'temperature': 0.2, 'qph': 60, 'ppd': 20, 'upload': 25}
     def nid(self): self.seq += 1; return self.seq
@@ -137,7 +139,7 @@ def run_processing(tab_id, who):
         text = a['text']; paras = [p.strip() for p in re.split(r'\n+', text) if p.strip()]
         html = ''.join('<p>%s</p>' % esc(p) for p in paras); sections = [p for p in paras if len(p) < 60][:5]
         note = None if S.settings['aiKey'] else 'Processado sem IA: nenhuma chave da IA está configurada. O conteúdo foi extraído do PDF sem reescrita.'
-        if S.settings['aiKey']: S.calls.append({'at': now(), 'kind': 'PROCESS', 'status': 'OK', 'httpStatus': 200, 'durationMs': 800, 'inputTokens': 120, 'outputTokens': 80, 'model': S.settings['model'], 'error': None})
+        if S.settings['aiKey']: S.calls.append({'at': now(), 'kind': 'PROCESS', 'status': 'OK', 'httpStatus': 200, 'durationMs': 800, 'inputTokens': 120, 'outputTokens': 80, 'model': S.settings['model'], 'error': None, 'estCostMicroUsd': 1560})
         apply_content(t, who, 'PROCESS', {'html': html, 'source': a['name']})
         a.update({'state': 'DONE', 'processed': True, 'sections': sections, 'processedAt': now(), 'message': note})
         audit(who, 'TAB_PROCESSED', t['clientId'], t)
@@ -162,7 +164,7 @@ def chat_answer(acc, conv_id, q):
     else:
         _, t, para = best; answered = True; source = t['name']; tab_id = t['id']
         if S.settings['aiKey']:
-            html = '<p>%s</p>' % esc(para); S.calls.append({'at': now(), 'kind': 'CHAT', 'status': 'OK', 'httpStatus': 200, 'durationMs': 300, 'inputTokens': 200, 'outputTokens': 60, 'model': S.settings['model'], 'error': None})
+            html = '<p>%s</p>' % esc(para); S.calls.append({'at': now(), 'kind': 'CHAT', 'status': 'OK', 'httpStatus': 200, 'durationMs': 300, 'inputTokens': 200, 'outputTokens': 60, 'model': S.settings['model'], 'error': None, 'estCostMicroUsd': 1500})
         else:
             degraded = True
             html = '<p>Não consegui usar a inteligência artificial agora, mas estes trechos do seu plano parecem responder à sua pergunta:</p><p><b>%s</b>: %s</p>' % (esc(t['name']), esc(para[:350]))
@@ -200,9 +202,13 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, *a): pass
 
     def send_json(self, status, data=None, cookies=()):
-        body = b'' if data is None else json.dumps(data, ensure_ascii=False).encode()
+        ctype = 'application/json'
+        if isinstance(data, tuple) and data[0] == 'RAW':
+            body, ctype = data[1], data[2]
+        else:
+            body = b'' if data is None else json.dumps(data, ensure_ascii=False).encode()
         self.send_response(status)
-        if body: self.send_header('Content-Type', 'application/json')
+        if body: self.send_header('Content-Type', ctype)
         self.send_header('Content-Length', str(len(body)))
         for c in cookies: self.send_header('Set-Cookie', c)
         self.security_headers(); self.end_headers()
@@ -270,7 +276,18 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == '/actuator/health': return R(200, {'status': 'UP'})
         if path == '/api/auth/csrf': return R(204)
-        if path == '/api/setup/status': return R(200, {'needsSetup': not S.settings['setup'], 'orgName': S.settings['org']})
+        if path == '/api/setup/status': return R(200, {'needsSetup': not S.settings['setup'], 'orgName': S.settings['org'], 'hasLogo': S.logo is not None})
+        if path == '/api/public/logo':
+            if S.logo is None: raise ApiErr(404, 'Recurso não encontrado.')
+            return R(200, ('RAW', S.logo, 'image/png'))
+        if path == '/api/access-requests' and method == 'POST':
+            if (j.get('website') or '').strip(): return R(202)
+            if not (j.get('name') or '').strip() or not (j.get('company') or '').strip(): raise ApiErr(400, 'Informe seu nome.')
+            if not re.fullmatch(r'[^@\s]+@[^@\s]+\.[^@\s]+', j.get('email') or ''): raise ApiErr(400, 'Informe um e-mail válido.')
+            em = j['email'].strip().lower()
+            if not any(r['email'] == em and r['open'] for r in S.requests):
+                S.requests.append({'id': S.nid(), 'name': j['name'].strip(), 'email': em, 'company': j['company'].strip(), 'phone': j.get('phone'), 'message': j.get('message'), 'createdAt': now(), 'open': True})
+            return R(202)
         if path == '/api/setup' and method == 'POST':
             if S.settings['setup']: raise ApiErr(409, 'A instalação inicial já foi concluída.')
             p = policy(j.get('password', ''), j.get('adminEmail', ''))
@@ -318,6 +335,11 @@ class Handler(BaseHTTPRequestHandler):
             t = S.tabs.get(tid)
             if not t or t['clientId'] != cid or (me['role'] != 'ADMIN' and (not t['published'] or (cid, tid) in S.blocked)): raise ApiErr(404, 'Etapa não encontrada.')
             return R(200, tabview(t, html=True, admin=me['role'] == 'ADMIN'))
+        g = m(r'/api/clients/(\d+)/progress')
+        if g:
+            need(); cid = int(g.group(1)); self.check_client(me, cid)
+            allowed = [t for t in S.tabs.values() if t['clientId'] == cid and (cid, t['id']) not in S.blocked]
+            return R(200, {'total': len(allowed), 'available': sum(1 for t in allowed if t['published'])})
         g = m(r'/api/clients/(\d+)/export\.(json|pdf)')
         if g: raise ApiErr(501, 'Exportação não é simulada no servidor de mentira.')
 
@@ -337,6 +359,36 @@ class Handler(BaseHTTPRequestHandler):
 
         # ---- administração
         if path.startswith('/api/admin/'): need('ADMIN')
+        if path == '/api/admin/access-requests': return R(200, [{k: r[k] for k in ('id', 'name', 'email', 'company', 'phone', 'message', 'createdAt')} for r in S.requests if r['open']])
+        if path == '/api/admin/access-requests/count': return R(200, {'open': sum(1 for r in S.requests if r['open'])})
+        g = m(r'/api/admin/access-requests/(\d+)/close')
+        if g:
+            r = next((x for x in S.requests if x['id'] == int(g.group(1))), None)
+            if not r: raise ApiErr(404, 'Pedido não encontrado.')
+            r['open'] = False; audit(me, 'ACCESS_REQUEST_CLOSED', None, None, r['email']); return R(204)
+        if path == '/api/admin/settings/logo':
+            if method == 'DELETE': S.logo = None; return R(204)
+            name, data = parse_multipart(self.headers, raw)
+            if not data or not data.startswith(b'\x89PNG'): raise ApiErr(400, 'Envie o logo em PNG, JPEG ou WebP.')
+            S.logo = data; audit(me, 'LOGO_CHANGED'); return R(204)
+        g = m(r'/api/admin/clients/(\d+)/promote')
+        if g:
+            a = self.client(int(g.group(1))); a['role'] = 'ADMIN'; audit(me, 'ADMIN_PROMOTED', a['id'], None, a['email']); return R(200, summary(a))
+        g = m(r'/api/admin/clients/(\d+)/tabs/import')
+        if g:
+            cid = int(g.group(1)); self.client(cid); tabs_in = j.get('tabs') or []
+            if not tabs_in: raise ApiErr(400, 'O arquivo não tem nenhuma etapa.')
+            created = 0
+            for ti in tabs_in:
+                name = (ti.get('name') or '').strip()
+                if not name: raise ApiErr(400, 'Toda etapa do arquivo precisa de nome.')
+                t = next((x for x in S.tabs.values() if x['clientId'] == cid and x['name'].lower() == name.lower()), None)
+                if not t:
+                    created += 1
+                    t = {'id': S.nid(), 'clientId': cid, 'slug': slug(name), 'name': name, 'title': name, 'sortOrder': 99, 'html': '', 'published': False, 'contentVersion': 0, 'shortDescription': None, 'whatIsIt': None, 'objective': None, 'keyPoints': [], 'suggestedQuestions': [], 'source': None, 'contentUpdatedAt': None}
+                    S.tabs[t['id']] = t
+                apply_content(t, me, 'EDIT', {'title': ti.get('title') or name, 'html': sanitize(ti.get('html') or ''), 'shortDescription': ti.get('shortDescription'), 'whatIsIt': ti.get('whatIsIt'), 'objective': ti.get('objective'), 'keyPoints': ti.get('keyPoints') or [], 'suggestedQuestions': ti.get('suggestedQuestions') or [], 'source': ti.get('source')})
+            audit(me, 'PLAN_IMPORTED', cid); return R(200, {'imported': len(tabs_in), 'created': created})
         if path == '/api/admin/clients' and method == 'GET': return R(200, [summary(a) for a in S.accounts.values() if a['role'] == 'CLIENT'])
         if path == '/api/admin/clients' and method == 'POST':
             a = new_account('CLIENT', j['name'].strip(), j['email'].strip().lower(), j['company'].strip(), (j.get('segment') or None)); audit(me, 'CLIENT_CREATED', a['id'], None, a['email']); return R(201, invite(a))

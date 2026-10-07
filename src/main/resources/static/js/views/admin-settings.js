@@ -1,7 +1,7 @@
 /* Configurações da consultoria: integração de IA, limites, nome da consultoria e administradores. */
 import { api } from '../api.js';
-import { esc, fmtDateTime, onClick, onSubmit, openModal, confirmDialog, toast, withBusy, toggleTheme, currentTheme } from '../ui.js';
-import { setAiBadge, refreshShell, state } from '../main.js';
+import { esc, fmtDateTime, fmtUsd, onChange, onClick, onSubmit, openModal, confirmDialog, toast, withBusy, toggleTheme, currentTheme } from '../ui.js';
+import { setAiBadge, refreshShell, state, applyLogo } from '../main.js';
 import { showInvite } from './admin-clients.js';
 
 const MODELS = ['claude-sonnet-4-6', 'claude-opus-4-1', 'claude-haiku-4-5-20251001'];
@@ -21,10 +21,12 @@ export async function render(root) {
 
 async function load() {
   const mine = S;
-  const [settings, admins] = await Promise.all([api.get('/api/admin/settings'), api.get('/api/admin/admins')]);
+  const [settings, admins, system] = await Promise.all([api.get('/api/admin/settings'), api.get('/api/admin/admins'),
+    api.get('/api/admin/system')]);
   if (S !== mine) return;
   S.settings = settings;
   S.admins = admins;
+  S.calls = system.recentCalls.slice(0, 20);
   paint();
   setAiBadge(settings.ai.keySource);
 }
@@ -67,6 +69,14 @@ function paint() {
           </div>
           <div class="status-line" id="ai-test-result" role="status"></div>
         </form>
+        <h3 class="sec-title" style="margin-top:22px;">Últimas chamadas</h3>
+        ${S.calls.length ? `<div class="table-scroll"><table class="admin-table calls-table"><caption class="sr-only">Últimas chamadas à IA</caption>
+          <thead><tr><th scope="col">Quando</th><th scope="col">Tipo</th><th scope="col">Resultado</th><th scope="col">Tempo</th><th scope="col">Custo estimado</th></tr></thead>
+          <tbody>${S.calls.map((c) => `<tr><td data-label="Quando">${esc(fmtDateTime(c.at))}</td><td data-label="Tipo">${esc({ CHAT: 'Chat', PROCESS: 'Processamento', TEST: 'Teste' }[c.kind] || c.kind)}</td>
+            <td data-label="Resultado"><span class="pill ${c.status === 'OK' ? 'teal' : c.status === 'ERROR' ? 'red' : 'amber'}">${esc(c.status === 'OK' ? 'OK' : c.status === 'ERROR' ? 'Erro' : c.status)}</span></td>
+            <td data-label="Tempo">${c.durationMs == null ? '—' : esc(c.durationMs + ' ms')}</td>
+            <td data-label="Custo estimado">${c.estCostMicroUsd == null ? '—' : esc(fmtUsd(c.estCostMicroUsd))}</td></tr>`).join('')}</tbody></table></div>`
+          : '<p class="empty-note" style="margin:0;">Nenhuma chamada à IA ainda.</p>'}
       </div>
 
       <div class="card settings-card">
@@ -89,6 +99,12 @@ function paint() {
           <div class="field"><label for="org-name">Nome da consultoria</label><input id="org-name" name="name" type="text" value="${esc(organization.name)}"></div>
           <button class="btn blue" type="submit">Salvar nome</button>
         </form>
+        <h3 class="sec-title" style="margin-top:22px;">Logo</h3>
+        <div class="logo-preview"><img src="${state.hasLogo ? '/api/public/logo?v=' + Date.now() : 'img/logo-empresa-jr.png'}" alt="Logo atual">
+          <span class="muted" style="font-size:13px;">${state.hasLogo ? 'Logo próprio da consultoria.' : 'Usando o logo padrão da Empresa JR.'} PNG, JPEG ou WebP, até 1 MB.</span></div>
+        <input type="file" id="logo-file" class="file-input-hidden" accept="image/png,image/jpeg,image/webp" tabindex="-1" aria-label="Escolher o logo" data-change="logo-file">
+        <div class="row-flex"><button class="btn" type="button" data-action="logo-pick">Enviar logo</button>
+          ${state.hasLogo ? '<button class="btn danger" type="button" data-action="logo-remove">Voltar ao logo padrão</button>' : ''}</div>
       </div>
 
       <div class="card settings-card">
@@ -201,6 +217,18 @@ onClick('admin-invite', async (el) => {
 onClick('admin-toggle', async (el) => {
   const suspend = el.dataset.suspended !== 'true';
   try { await api.post(`/api/admin/admins/${el.dataset.id}/${suspend ? 'suspend' : 'activate'}`, {}); await load(); toast(suspend ? 'Acesso suspenso.' : 'Acesso reativado.', 'ok'); }
+  catch (error) { toast(error.message, 'error'); }
+});
+
+onClick('logo-pick', () => { const input = document.getElementById('logo-file'); if (input) { input.value = ''; input.click(); } });
+onChange('logo-file', async (el) => {
+  const file = el.files && el.files[0];
+  if (!file) return;
+  try { await api.upload('/api/admin/settings/logo', file); applyLogo(true); await load(); toast('Logo atualizado.', 'ok'); }
+  catch (error) { toast(error.message, 'error'); }
+});
+onClick('logo-remove', async () => {
+  try { await api.del('/api/admin/settings/logo'); applyLogo(false); await load(); toast('Voltamos ao logo padrão.', 'ok'); }
   catch (error) { toast(error.message, 'error'); }
 });
 

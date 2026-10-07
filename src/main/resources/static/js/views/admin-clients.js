@@ -1,6 +1,7 @@
 /* Clientes & Planos: cadastro, acesso, edição e exclusão. */
 import { api } from '../api.js';
 import { esc, initials, fmtDateTime, onClick, openModal, confirmDialog, copyText, toast } from '../ui.js';
+import { enterViewAs, refreshRequestBadge } from '../main.js';
 
 let S = null;
 
@@ -17,6 +18,7 @@ export async function render(root) {
       <div><h1>Clientes &amp; Planos</h1><p>Crie acessos, gerencie o acesso de cada cliente e abra o conteúdo do plano dele.</p></div>
       <button class="btn blue" type="button" data-action="client-new">+ Novo cliente</button>
     </div>
+    <div id="requests-body"></div>
     <div class="card admin-table-wrap"><div class="table-scroll" id="clients-body"></div></div>`;
   await load();
   return () => { S = null; };
@@ -24,10 +26,31 @@ export async function render(root) {
 
 async function load() {
   const mine = S;
-  const clients = await api.get('/api/admin/clients');
+  const [clients, requests] = await Promise.all([api.get('/api/admin/clients'), api.get('/api/admin/access-requests')]);
   if (S !== mine) return;
   S.clients = clients;
+  S.requests = requests;
   paint();
+  paintRequests();
+  refreshRequestBadge();
+}
+
+function paintRequests() {
+  const box = document.getElementById('requests-body');
+  if (!box) return;
+  if (!S.requests.length) { box.innerHTML = ''; return; }
+  box.innerHTML = `<h2 class="sec-title">Pedidos de acesso (${S.requests.length})</h2>
+    <p class="sec-sub">Pessoas que pediram acesso pela página inicial. Crie o acesso ou descarte o pedido.</p>
+    <div class="request-list">${S.requests.map((r) => `
+      <div class="card request-card">
+        <div class="who"><b>${esc(r.name)} · ${esc(r.company)}</b>
+          <span>${esc(r.email)}${r.phone ? ' · ' + esc(r.phone) : ''} · pedido em ${esc(fmtDateTime(r.createdAt))}</span>
+          ${r.message ? `<div class="msg">${esc(r.message)}</div>` : ''}</div>
+        <div class="actions">
+          <button class="btn blue small" type="button" data-action="request-create" data-id="${r.id}" aria-label="Criar acesso para ${esc(r.company)}">Criar acesso</button>
+          <button class="btn small" type="button" data-action="request-dismiss" data-id="${r.id}" aria-label="Descartar pedido de ${esc(r.company)}">Descartar</button>
+        </div>
+      </div>`).join('')}</div>`;
 }
 
 function paint() {
@@ -66,13 +89,36 @@ export async function showInvite(invite, { title, intro }) {
   }).then(() => null);
 }
 
-onClick('client-new', async () => {
+onClick('client-new', () => newClient());
+
+onClick('request-create', async (el) => {
+  const request = S && S.requests.find((r) => r.id === Number(el.dataset.id));
+  if (!request) return;
+  const created = await newClient(request);
+  if (created) {
+    try { await api.post(`/api/admin/access-requests/${request.id}/close?accessCreated=true`, {}); } catch (e) { /* o acesso já foi criado */ }
+    await load();
+  }
+});
+
+onClick('request-dismiss', async (el) => {
+  const request = S && S.requests.find((r) => r.id === Number(el.dataset.id));
+  if (!request) return;
+  const ok = await confirmDialog({ title: 'Descartar pedido', message: `Descartar o pedido de ${request.name} (${request.company})? Nenhum acesso é criado.`, confirmLabel: 'Descartar' });
+  if (!ok) return;
+  try { await api.post(`/api/admin/access-requests/${request.id}/close`, {}); await load(); toast('Pedido descartado.', 'ok'); }
+  catch (error) { toast(error.message, 'error'); }
+});
+
+/** Cadastra um cliente (opcionalmente a partir de um pedido de acesso) e mostra o link de convite. */
+async function newClient(prefill) {
+  const value = (v) => esc(v || '');
   const result = await openModal({
     title: 'Novo cliente',
     description: 'Crie o acesso do cliente. O plano nasce com as etapas padrão, prontas para receber o material.',
-    body: `<div class="field"><label for="nc-name">Nome do responsável</label><input type="text" id="nc-name" autocomplete="off" placeholder="Ex: Rafael Matos"></div>
-      <div class="field"><label for="nc-email">E-mail de acesso</label><input type="email" id="nc-email" autocomplete="off" placeholder="rafael@empresa.com"></div>
-      <div class="field"><label for="nc-company">Nome da empresa</label><input type="text" id="nc-company" autocomplete="off" placeholder="Ex: Cafeteria Grão & Cia"></div>
+    body: `<div class="field"><label for="nc-name">Nome do responsável</label><input type="text" id="nc-name" autocomplete="off" placeholder="Ex: Rafael Matos" value="${value(prefill && prefill.name)}"></div>
+      <div class="field"><label for="nc-email">E-mail de acesso</label><input type="email" id="nc-email" autocomplete="off" placeholder="rafael@empresa.com" value="${value(prefill && prefill.email)}"></div>
+      <div class="field"><label for="nc-company">Nome da empresa</label><input type="text" id="nc-company" autocomplete="off" placeholder="Ex: Cafeteria Grão & Cia" value="${value(prefill && prefill.company)}"></div>
       <div class="field"><label for="nc-segment">Segmento (opcional)</label><input type="text" id="nc-segment" autocomplete="off" placeholder="Ex: Alimentação"></div>`,
     actions: [
       { id: 'cancel', label: 'Cancelar' },
@@ -89,8 +135,10 @@ onClick('client-new', async () => {
     await load();
     toast('Cliente cadastrado.', 'ok');
     await showInvite(result, { title: 'Envie o acesso ao cliente', intro: `Cadastro de ${result.client.company} concluído. Copie o link e envie para ${result.client.email}.` });
+    return result;
   }
-});
+  return null;
+}
 
 onClick('client-access', async (el) => {
   if (!S) return;
@@ -102,14 +150,25 @@ onClick('client-access', async (el) => {
     body: `<dl class="kv-list" style="margin-bottom:14px;"><div class="kv"><dt>Status</dt><dd>${statusPill(c)}</dd></div>
       <div class="kv"><dt>Último acesso</dt><dd>${esc(fmtDateTime(c.lastLoginAt))}</dd></div></dl>
       <div class="stack">
+        <button class="btn blue" type="button" data-modal-action="view-as">Ver o painel como o cliente vê</button>
         <button class="btn" type="button" data-modal-action="invite">${c.passwordSet ? 'Gerar link para redefinir a senha' : 'Gerar novo link de convite'}</button>
         <button class="btn" type="button" data-modal-action="edit">Editar dados do cliente</button>
         <button class="btn" type="button" data-modal-action="${c.suspended ? 'activate' : 'suspend'}">${c.suspended ? 'Reativar acesso' : 'Suspender acesso'}</button>
+        <button class="btn" type="button" data-modal-action="promote">Promover a administrador</button>
         <button class="btn danger" type="button" data-modal-action="delete">Excluir cliente e todo o plano</button>
       </div>`,
     actions: [{ id: 'close', label: 'Fechar', primary: true }],
   });
-  if (choice === 'invite') {
+  if (choice === 'view-as') {
+    enterViewAs(c);
+  } else if (choice === 'promote') {
+    const ok = await confirmDialog({ title: 'Promover a administrador',
+      message: `${c.name} passa a fazer parte da consultoria, com acesso a todos os clientes e configurações, e deixa de aparecer em Clientes & Planos. O plano de ${c.company} fica guardado. Para valer, a pessoa precisa entrar de novo.`,
+      confirmLabel: 'Promover', danger: true });
+    if (!ok) return;
+    try { await api.post(`/api/admin/clients/${c.id}/promote`, {}); await load(); toast(`${c.name} agora é administrador.`, 'ok'); }
+    catch (e) { toast(e.message, 'error'); }
+  } else if (choice === 'invite') {
     try {
       const invite = await api.post(`/api/admin/clients/${c.id}/invite`, {});
       await load();

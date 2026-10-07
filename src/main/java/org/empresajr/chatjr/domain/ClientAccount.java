@@ -164,6 +164,11 @@ public class ClientAccount {
     public String getPlanFile() { return planFile; }
     public Instant getPlanUpdatedAt() { return planUpdatedAt; }
     public boolean isSuspended() { return suspended; }
+
+    /** Passa a conta para o perfil de consultoria. O plano que ela tinha fica guardado, mas sai das telas de clientes. */
+    public void promoteToAdmin() {
+        this.role = Role.ADMIN;
+    }
     public int getFailedAttempts() { return failedAttempts; }
     public Instant getLockedUntil() { return lockedUntil; }
     public Instant getTokenExpiresAt() { return tokenExpiresAt; }

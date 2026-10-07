@@ -80,7 +80,7 @@ public class SystemInfoService {
                 callLogs.findTop20ByOrderByIdDesc().stream()
                         .map(c -> new SystemDto.CallItem(c.getCreatedAt(), c.getKind(), c.getStatus(), c.getHttpStatus(),
                                 c.getDurationMs(), c.getInputTokens(), c.getOutputTokens(), c.getModel(),
-                                c.getErrorMessage())).toList());
+                                c.getErrorMessage(), c.getEstCostMicroUsd())).toList());
     }
 
     public SystemDto.EmailTest testEmail() {

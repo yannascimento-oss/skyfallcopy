@@ -11,7 +11,8 @@ const ACTIONS = {
   TAB_DELETED: 'Etapa excluída', TAB_RESTORED: 'Etapa restaurada', TAB_PROCESSED: 'Etapa processada', SCOPE_CHANGED: 'Escopo alterado',
   PDF_UPLOADED: 'PDF enviado', SLIDE_LINK_SET: 'Link de slides', ATTACHMENT_REMOVED: 'Anexo removido', PROCESS_STARTED: 'Processamento iniciado',
   AI_SETTINGS_CHANGED: 'IA configurada', AI_KEY_REMOVED: 'Chave da IA removida', AI_TESTED: 'Conexão com a IA testada',
-  LIMITS_CHANGED: 'Limites alterados', ORGANIZATION_CHANGED: 'Consultoria renomeada', EXPORT_JSON: 'Exportação JSON', EXPORT_PDF: 'Exportação PDF',
+  LIMITS_CHANGED: 'Limites alterados', ACCESS_REQUEST_CLOSED: 'Pedido de acesso tratado', ADMIN_PROMOTED: 'Promovido a administrador',
+  PLAN_IMPORTED: 'Plano importado', LOGO_CHANGED: 'Logo alterado', ORGANIZATION_CHANGED: 'Consultoria renomeada', EXPORT_JSON: 'Exportação JSON', EXPORT_PDF: 'Exportação PDF',
 };
 
 let S = null;

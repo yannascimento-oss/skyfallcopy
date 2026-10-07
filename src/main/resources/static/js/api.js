@@ -55,11 +55,42 @@ async function send(method, url, { body, form, allow401 = false } = {}, retried 
   throw new ApiError(response.status, message);
 }
 
+/** Envio de arquivo com progresso real (fetch não informa o progresso do upload). */
+function uploadWithProgress(url, file, onProgress, retried = false) {
+  return ensureCsrf().then(() => new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('Accept', 'application/json');
+    const token = xsrfToken();
+    if (token) xhr.setRequestHeader('X-XSRF-TOKEN', token);
+    if (onProgress) xhr.upload.addEventListener('progress', (e) => { if (e.lengthComputable) onProgress(e.loaded / e.total); });
+    xhr.addEventListener('error', () => reject(new ApiError(0, 'Não foi possível falar com o servidor. Verifique a conexão e tente de novo.')));
+    xhr.addEventListener('load', () => {
+      let data = null;
+      try { data = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch (e) { data = null; }
+      if (xhr.status >= 200 && xhr.status < 300) { resolve(data); return; }
+      if (xhr.status === 403 && !retried && data && /Sessão de segurança inválida/.test(data.message || '')) {
+        fetch('/api/auth/csrf', { credentials: 'same-origin' }).then(() => uploadWithProgress(url, file, onProgress, true)).then(resolve, reject);
+        return;
+      }
+      if (xhr.status === 401) onSessionExpired();
+      const message = (data && data.message) || (xhr.status === 413 ? 'O arquivo é grande demais.'
+        : xhr.status >= 500 ? 'O servidor teve um problema. Tente de novo em instantes.' : 'Não foi possível enviar o arquivo.');
+      reject(new ApiError(xhr.status, message));
+    });
+    const form = new FormData();
+    form.append('file', file);
+    xhr.send(form);
+  }));
+}
+
 export const api = {
   get: (url, options) => send('GET', url, options),
   post: (url, body, options) => send('POST', url, { ...options, body }),
   put: (url, body, options) => send('PUT', url, { ...options, body }),
   del: (url, options) => send('DELETE', url, options),
+  uploadWithProgress,
   upload: (url, file) => {
     const form = new FormData();
     form.append('file', file);

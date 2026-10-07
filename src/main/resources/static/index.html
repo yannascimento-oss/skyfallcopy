@@ -13,7 +13,7 @@
 <div id="view-auth">
   <header class="jr-topnav">
     <div class="jr-logo">
-      <img src="img/logo-empresa-jr.png" alt="Empresa JR" width="40" height="40">
+      <img src="img/logo-empresa-jr.png" alt="Empresa JR" width="40" height="40" data-logo>
       <span class="wm"><b>EMPRESA JR</b><span>ADMINISTRAÇÃO UFBA</span></span>
     </div>
     <nav>
@@ -91,7 +91,7 @@
   <div class="sidebar-scrim" id="sidebar-scrim" data-action="toggle-sidebar"></div>
   <aside class="sidebar scrollbar-thin" id="sidebar">
     <div class="sidebar-top">
-      <img src="img/logo-empresa-jr.png" alt="Empresa JR" width="38" height="38">
+      <img src="img/logo-empresa-jr.png" alt="Empresa JR" width="38" height="38" data-logo>
       <span class="sidebar-brand"><b>Chat Jr</b><span>Seu Plano de Negócios</span></span>
     </div>
     <div class="sidebar-company">
@@ -131,6 +131,11 @@
         <div class="avatar" id="top-avatar" aria-hidden="true"></div>
       </div>
     </header>
+    <div class="impersonation-bar hidden" id="impersonation-bar" role="region" aria-label="Aviso de visualização como cliente">
+      <span>Você está vendo o painel de <b id="imp-client-name"></b> exatamente como o cliente vê. O chat não aparece aqui: as conversas do cliente são privadas.</span>
+      <span class="grow"></span>
+      <button type="button" data-action="exit-view-as">Voltar ao painel da consultoria</button>
+    </div>
     <main class="content" id="content" tabindex="-1"></main>
   </div>
 </div>

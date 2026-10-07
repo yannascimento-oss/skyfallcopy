@@ -57,6 +57,14 @@ def make_pdf(lines):
     return out + b'trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n' % (len(objs) + 1, xref)
 
 
+def make_png():
+    import struct, zlib
+    def chunk(kind, data): return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data) & 0xffffffff)
+    raw = b'\x00' + b'\x07\x28\xe7'  # 1x1, azul
+    return b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', 1, 1, 8, 2, 0, 0, 0)) + chunk(b'IDAT', zlib.compress(raw)) + chunk(b'IEND', b'')
+
+
+LOGO_PNG = make_png()
 PLAN_PDF = make_pdf(['Mercado', 'O mercado de academias cresce dez por cento ao ano no Brasil.', 'A concorrência local é formada por seis academias.'])
 
 
@@ -214,7 +222,7 @@ def run():
 
         # 4 ---------------------------------------------------------------- consultoria sobe o PDF, processa e publica
         section('Consultoria monta e publica a etapa')
-        admin.get_by_role('link', name='Conteúdo').first.click()
+        admin.get_by_role('link', name='Gerenciar conteúdo de Cafeteria Grão').click()
         expect(admin.locator('#page-title')).to_have_text('Conteúdo dos planos')
         admin.locator('.ct-row', has_text='Mercado').first.click()
         expect(admin.locator('#att-panel')).to_contain_text('Nenhum PDF anexado')
@@ -245,7 +253,8 @@ def run():
         settled(client, 'Consultar plano')
         check('recarregar a página mantém a tela atual (endereço #/chat)', '#/chat' in client.url, client.url)
         go_nav(client, 'Início')
-        expect(client.locator('.kv', has_text='Etapas disponíveis')).to_contain_text('1')
+        expect(client.locator('.progress-card')).to_contain_text('1 de 15')
+        check('Dashboard mostra a rosca de progresso e a etiqueta da etapa', client.locator('.progress-card svg.donut').count() == 1 and client.locator('.tab-chip', has_text='Mercado').count() == 1)
         go_nav(client, 'Plano de negócios')
         expect(client.locator('.plan-content h2')).to_have_text('Mercado')
         expect(client.locator('.plan-content')).to_contain_text('dez por cento')
@@ -285,10 +294,34 @@ def run():
         admin.locator('[data-action="ct-scope"]').click()
         expect(admin.locator('.ct-row', has_text='Mercado').first).to_contain_text('Publicada', timeout=10000)
 
+        section('Importar JSON e ver como o cliente')
+        imported = json.dumps({'tabs': [{'name': 'Riscos', 'title': 'Riscos', 'html': '<p>O principal risco é a sazonalidade.</p>'}]}).encode()
+        admin.set_input_files('#ct-import-file', {'name': 'plano.json', 'mimeType': 'application/json', 'buffer': imported})
+        admin.get_by_role('button', name='Importar', exact=True).click()
+        expect(admin.locator('#toasts')).to_contain_text('importada', timeout=10000)
+        expect(admin.locator('.ct-row', has_text='Riscos').first).to_contain_text('Rascunho', timeout=10000)
+        check('importar JSON grava o conteúdo como rascunho (não publica)', True)
+        admin.get_by_role('button', name='Ver como o cliente').click()
+        expect(admin.locator('#impersonation-bar')).to_be_visible()
+        settled(admin, 'Início')
+        expect(admin.locator('.progress-card')).to_contain_text('1 de 15')
+        shot(admin, 'ver-como-cliente')
+        check('"ver como o cliente" mostra a faixa amarela e o painel do cliente', admin.locator('#side-nav a', has_text='Consultar plano').count() == 0)
+        axe(admin, 'ver como o cliente (início)')
+        go_nav(admin, 'Plano de negócios')
+        expect(admin.locator('.plan-cat-item')).to_have_count(1)
+        check('na visão do cliente, rascunhos (Riscos) não aparecem', admin.locator('.plan-cat-item', has_text='Riscos').count() == 0)
+        admin.get_by_role('button', name='Voltar ao painel da consultoria').click()
+        settled(admin, 'Clientes & Planos')
+        expect(admin.locator('#impersonation-bar')).to_be_hidden()
+
         # 7 ---------------------------------------------------------------- configurações e IA
         section('Configurações, IA, sistema e histórico')
         go_nav(admin, 'Configurações')
         axe(admin, 'configurações')
+        admin.set_input_files('#logo-file', {'name': 'logo.png', 'mimeType': 'image/png', 'buffer': LOGO_PNG})
+        expect(admin.locator('#toasts')).to_contain_text('Logo atualizado', timeout=10000)
+        check('logo novo aparece na barra lateral', '/api/public/logo' in (admin.locator('.sidebar-top img').get_attribute('src') or ''))
         admin.locator('#org-name').fill('Empresa JR UFBA')
         admin.get_by_role('button', name='Salvar nome').click()
         expect(admin.locator('#active-company')).to_have_text('Empresa JR UFBA', timeout=10000)
@@ -375,6 +408,39 @@ def run():
         login(client, CLIENT_EMAIL, CLIENT_PW2)
         expect(client.locator('#app')).to_be_visible(timeout=15000)
         check('reativado, o cliente volta a entrar', True)
+
+        # 9a --------------------------------------------------------------- pedido de acesso e promoção
+        section('Pedido de acesso pela landing e promoção')
+        visitor_ctx = browser.new_context(viewport={'width': 1366, 'height': 820}, locale='pt-BR')
+        visitor = visitor_ctx.new_page(); watch(visitor)
+        visitor.goto(BASE + '/')
+        check('landing usa o logo novo da consultoria', '/api/public/logo' in (visitor.locator('.jr-topnav img').get_attribute('src') or ''))
+        visitor.get_by_role('button', name='Solicitar acesso').click()
+        axe(visitor, 'solicitar acesso')
+        visitor.locator('#rq-name').fill('Carla Souza'); visitor.locator('#rq-email').fill('carla@padaria.e2e.chatjr.test')
+        visitor.locator('#rq-company').fill('Padaria Sol'); visitor.locator('#rq-message').fill('Queremos acompanhar o plano.')
+        visitor.get_by_role('button', name='Enviar pedido').click()
+        expect(visitor.get_by_role('heading', name='Pedido enviado')).to_be_visible(timeout=10000)
+        visitor_ctx.close()
+        go_nav(admin, 'Clientes & Planos')
+        expect(admin.locator('.nav-item[data-view="clientes"] .nav-badge')).to_have_text('1', timeout=10000)
+        expect(admin.locator('.request-card')).to_contain_text('Padaria Sol')
+        shot(admin, 'pedidos-de-acesso')
+        admin.get_by_role('button', name='Criar acesso para Padaria Sol').click()
+        check('o cadastro já vem preenchido com os dados do pedido', admin.locator('#nc-email').input_value() == 'carla@padaria.e2e.chatjr.test')
+        admin.get_by_role('button', name='Cadastrar cliente').click()
+        expect(admin.locator('#invite-link')).to_be_visible(timeout=10000)
+        admin.get_by_role('button', name='Fechar').click()
+        expect(admin.locator('.request-card')).to_have_count(0, timeout=10000)
+        expect(admin.locator('.nav-item[data-view="clientes"] .nav-badge')).to_have_count(0)
+        check('pedido vira cliente e sai da fila', 'Padaria Sol' in admin.locator('#clients-body').inner_text())
+        admin.get_by_role('button', name='Gerenciar acesso de Padaria Sol').click()
+        admin.get_by_role('button', name='Promover a administrador').click()
+        admin.get_by_role('button', name='Promover', exact=True).click()
+        expect(admin.locator('#clients-body')).not_to_contain_text('Padaria Sol', timeout=10000)
+        go_nav(admin, 'Configurações')
+        expect(admin.locator('#admins-list')).to_contain_text('carla@padaria.e2e.chatjr.test')
+        check('cliente promovido aparece entre os administradores', True)
 
         # 9 ---------------------------------------------------------------- segurança dos cookies
         section('Cookies e requisições')

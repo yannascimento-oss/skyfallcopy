@@ -1,7 +1,7 @@
 /* Entrada: login, instalação inicial (primeiro acesso ao sistema) e definição de senha pelo link de convite. */
 import { api, ApiError } from '../api.js';
-import { $, esc, onClick, onSubmit, withBusy } from '../ui.js';
-import { enterApp, state } from '../main.js';
+import { $, esc, onClick, onSubmit, withBusy, toast } from '../ui.js';
+import { enterApp, state, applyLogo } from '../main.js';
 
 const POLICY_HINT = 'Mínimo de 10 caracteres, misturando letras e números.';
 
@@ -40,8 +40,30 @@ const VIEWS = {
         <input id="login-pass" name="password" type="password" autocomplete="current-password" placeholder="Sua senha" required>
       </div>
       <button class="btn-lg blue btn" type="submit">Entrar no Chat Jr</button>
-      <p class="auth-note">Não tem acesso? Fale com a consultoria da Empresa JR. Os acessos são criados pela equipe.</p>
+      <p class="auth-note">Ainda não tem acesso? <button class="link-btn" type="button" data-action="auth-request">Solicitar acesso</button></p>
     </form>`,
+
+  request: () => `
+    <form data-form="request-access" novalidate>
+      <h2>Solicitar acesso</h2>
+      <p class="sub">Deixe seu contato. A consultoria da Empresa JR analisa o pedido e envia o link de acesso ao seu Plano de Negócios.</p>
+      ${errorBox('auth-error')}
+      <div class="field"><label for="rq-name">Seu nome</label><input id="rq-name" name="name" type="text" autocomplete="name" maxlength="120" required></div>
+      <div class="field"><label for="rq-email">E-mail</label><input id="rq-email" name="email" type="email" autocomplete="email" maxlength="200" required></div>
+      <div class="field"><label for="rq-company">Empresa</label><input id="rq-company" name="company" type="text" autocomplete="organization" maxlength="160" required></div>
+      <div class="field"><label for="rq-phone">Telefone (opcional)</label><input id="rq-phone" name="phone" type="tel" autocomplete="tel" maxlength="40"></div>
+      <div class="field"><label for="rq-message">Mensagem (opcional)</label><textarea id="rq-message" name="message" rows="3" maxlength="1000"></textarea></div>
+      <div class="hp-field" aria-hidden="true"><label for="rq-website">Deixe em branco</label><input id="rq-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+      <button class="btn-lg blue btn" type="submit">Enviar pedido</button>
+      <div class="auth-switch"><button class="link-btn" type="button" data-action="auth-login">Voltar para o login</button></div>
+    </form>`,
+
+  requested: () => `
+    <div>
+      <h2>Pedido enviado</h2>
+      <p class="sub">Recebemos o seu pedido. A consultoria da Empresa JR vai analisar e, se for o caso, enviar o link de acesso para o seu e-mail.</p>
+      <div class="auth-switch"><button class="link-btn" type="button" data-action="auth-login">Voltar para o login</button></div>
+    </div>`,
 
   forgot: () => `
     <div>
@@ -62,6 +84,8 @@ const VIEWS = {
       <div class="field"><label for="st-pass">Senha</label><input id="st-pass" name="password" type="password" autocomplete="new-password" aria-describedby="st-pass-help" required>
         <div class="help" id="st-pass-help">${POLICY_HINT}</div></div>
       <div class="field"><label for="st-pass2">Repita a senha</label><input id="st-pass2" name="confirm" type="password" autocomplete="new-password" required></div>
+      <div class="field"><label for="st-logo">Logo da consultoria (opcional)</label><input id="st-logo" name="logo" type="file" accept="image/png,image/jpeg,image/webp">
+        <div class="help">PNG, JPEG ou WebP, até 1 MB. Sem logo, o sistema usa o da Empresa JR.</div></div>
       <div class="field"><label for="st-key">Chave da IA (opcional)</label><input id="st-key" name="aiKey" type="password" autocomplete="off" placeholder="sk-ant-...">
         <div class="help">Pode ser cadastrada depois em Configurações. Sem ela, o sistema funciona em modo básico, só com busca no texto.</div></div>
       <button class="btn-lg blue btn" type="submit">Concluir instalação</button>
@@ -131,6 +155,11 @@ async function doSetup(form) {
       });
       const me = await api.post('/api/auth/login', { email: form.adminEmail.value.trim(), password: form.password.value }, { allow401: true });
       state.orgName = me.orgName || form.orgName.value.trim();
+      const logo = form.logo.files && form.logo.files[0];
+      if (logo) {
+        try { await api.upload('/api/admin/settings/logo', logo); applyLogo(true); }
+        catch (error) { toast('A instalação foi concluída, mas o logo não foi aceito: ' + error.message + ' Envie de novo em Configurações.', 'error'); }
+      }
       await enterApp(me);
     } catch (error) {
       fail('auth-error', error.message);
@@ -159,6 +188,17 @@ async function doInvite(form) {
 onSubmit('login', doLogin);
 onSubmit('setup', doSetup);
 onSubmit('invite', doInvite);
+onSubmit('request-access', async (form) => {
+  const body = { name: form.name.value.trim(), email: form.email.value.trim(), company: form.company.value.trim(),
+                 phone: form.phone.value.trim() || null, message: form.message.value.trim() || null, website: form.website.value };
+  if (!body.name || !body.email || !body.company) { fail('auth-error', 'Preencha seu nome, e-mail e empresa.'); return; }
+  fail('auth-error', '');
+  await withBusy(form.querySelector('button[type=submit]'), 'Enviando…', async () => {
+    try { await api.post('/api/access-requests', body); showAuth('requested'); }
+    catch (error) { fail('auth-error', error.message); }
+  });
+});
+onClick('auth-request', () => showAuth('request'));
 onClick('auth-forgot', () => showAuth('forgot'));
 onClick('auth-login', () => showAuth('login'));
 onClick('auth-retry', () => location.reload());

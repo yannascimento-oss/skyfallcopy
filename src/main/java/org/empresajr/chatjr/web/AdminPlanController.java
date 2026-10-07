@@ -1,5 +1,7 @@
 package org.empresajr.chatjr.web;
 
+import org.empresajr.chatjr.web.dto.ImportPlanRequest;
+
 import jakarta.validation.Valid;
 import org.empresajr.chatjr.service.PlanService;
 import org.empresajr.chatjr.web.dto.CreateTabRequest;
@@ -65,5 +67,12 @@ public class AdminPlanController {
     @PostMapping("/{tabId}/versions/{version}/restore")
     public TabView restore(@PathVariable Long clientId, @PathVariable Long tabId, @PathVariable int version) {
         return plans.restoreVersion(clientId, tabId, version);
+    }
+
+    /** Importa etapas de um JSON exportado. */
+    @PostMapping("/import")
+    public PlanService.ImportResult importPlan(@PathVariable Long clientId, @Valid @RequestBody ImportPlanRequest body) {
+        return plans.importPlan(clientId, body.tabs().stream().map(ImportPlanRequest.Tab::toUpdate).toList(),
+                body.tabs().stream().map(ImportPlanRequest.Tab::name).toList());
     }
 }

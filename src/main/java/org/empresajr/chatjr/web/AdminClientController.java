@@ -70,4 +70,9 @@ public class AdminClientController {
         accounts.setSuspended(id, false);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/promote")
+    public ClientSummary promote(@PathVariable Long id) {
+        return ClientSummary.of(accounts.promoteToAdmin(id));
+    }
 }
