@@ -163,7 +163,7 @@ public abstract class AbstractIntegrationTest {
 
     @BeforeEach
     void cleanDatabase() {
-        jdbc.execute("TRUNCATE TABLE app_error, ai_call_log, audit_log, app_setting, query_log, chat_message, "
+        jdbc.execute("TRUNCATE TABLE access_request, app_error, ai_call_log, audit_log, app_setting, query_log, chat_message, "
                 + "conversation, tab_scope, plan_version, tab_chunk, attachment, plan_tab, client_account "
                 + "RESTART IDENTITY CASCADE");
     }
