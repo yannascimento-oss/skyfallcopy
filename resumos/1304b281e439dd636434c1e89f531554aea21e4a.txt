@@ -1,0 +1,178 @@
+commit: 1304b281e439dd636434c1e89f531554aea21e4a  branch: fase-2-java  resultado: success  navegador: success
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.155 s -- in org.empresajr.chatjr.StaticFrontendGuardTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 s -- in org.empresajr.chatjr.ClientAccountTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.519 s -- in org.empresajr.chatjr.ChatAnswerParserTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.026 s -- in org.empresajr.chatjr.TextChunkerTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 34.36 s -- in org.empresajr.chatjr.AccountSelfServiceTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.84 s -- in org.empresajr.chatjr.PlanAccessTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.08 s -- in org.empresajr.chatjr.AdminSettingsTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.empresajr.chatjr.SettingsMaskTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.PasswordPolicyTest
+[INFO] Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 40.24 s -- in org.empresajr.chatjr.ChatTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.53 s -- in org.empresajr.chatjr.AdminUsersTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 26.62 s -- in org.empresajr.chatjr.ProcessingTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.923 s -- in org.empresajr.chatjr.DemoDataLoaderTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.421 s -- in org.empresajr.chatjr.ExportTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.AiContentParserTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.358 s -- in org.empresajr.chatjr.FrontendServingTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in org.empresajr.chatjr.KnowledgeIndexTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.687 s -- in org.empresajr.chatjr.SessionCookieTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in org.empresajr.chatjr.SecretCipherTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.47 s -- in org.empresajr.chatjr.AuthFlowTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.DefaultStagesTest
+[INFO] Tests run: 181, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+=== teste de navegador ===
+77 verificações, 0 com falha
+=== fim do log ===
+2026-10-07T00:53:04.925Z  INFO 2188 --- [chat-jr] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-07T00:53:06.082Z  INFO 2188 --- [chat-jr] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsService
+2026-10-07T00:53:06.147Z  INFO 2188 --- [chat-jr] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-10-07T00:53:06.352Z  INFO 2188 --- [chat-jr] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-10-07T00:53:06.828Z  INFO 2188 --- [chat-jr] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring TestDispatcherServlet ''
+2026-10-07T00:53:06.828Z  INFO 2188 --- [chat-jr] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-07T00:53:06.829Z  INFO 2188 --- [chat-jr] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-10-07T00:53:06.919Z  INFO 2188 --- [chat-jr] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 34157 (http) with context path '/'
+2026-10-07T00:53:06.932Z  INFO 2188 --- [chat-jr] [           main] o.e.chatjr.AccountSelfServiceTest        : Started AccountSelfServiceTest in 8.496 seconds (process running for 21.524)
+OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/home/runner/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.19/byte-buddy-agent-1.14.19.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 34.36 s -- in org.empresajr.chatjr.AccountSelfServiceTest
+[INFO] Running org.empresajr.chatjr.PlanAccessTest
+2026-10-07T00:53:22.188Z  INFO 2188 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.PlanAccessTest]: PlanAccessTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T00:53:22.191Z  INFO 2188 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.PlanAccessTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.84 s -- in org.empresajr.chatjr.PlanAccessTest
+[INFO] Running org.empresajr.chatjr.AdminSettingsTest
+2026-10-07T00:53:37.027Z  INFO 2188 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.AdminSettingsTest]: AdminSettingsTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T00:53:37.030Z  INFO 2188 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.AdminSettingsTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.08 s -- in org.empresajr.chatjr.AdminSettingsTest
+[INFO] Running org.empresajr.chatjr.SettingsMaskTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.empresajr.chatjr.SettingsMaskTest
+[INFO] Running org.empresajr.chatjr.PasswordPolicyTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.PasswordPolicyTest
+[INFO] Running org.empresajr.chatjr.ChatTest
+2026-10-07T00:53:48.115Z  INFO 2188 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.ChatTest]: ChatTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T00:53:48.117Z  INFO 2188 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.ChatTest
+2026-10-07T00:53:51.475Z  WARN 2188 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : 53 new fonts found, font cache will be re-built
+2026-10-07T00:53:51.475Z  WARN 2188 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : Building on-disk font cache, this may take a while
+2026-10-07T00:53:54.489Z  WARN 2188 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : Could not load font file '/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf': 'loca' table is mandatory
+2026-10-07T00:53:54.490Z  WARN 2188 --- [chat-jr] [           main] o.a.p.p.font.FileSystemFontProvider      : Finished building on-disk font cache, found 53 fonts
+[INFO] Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 40.24 s -- in org.empresajr.chatjr.ChatTest
+[INFO] Running org.empresajr.chatjr.AdminUsersTest
+2026-10-07T00:54:28.357Z  INFO 2188 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.AdminUsersTest]: AdminUsersTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T00:54:28.359Z  INFO 2188 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.AdminUsersTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.53 s -- in org.empresajr.chatjr.AdminUsersTest
+[INFO] Running org.empresajr.chatjr.ProcessingTest
+2026-10-07T00:54:38.889Z  INFO 2188 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.ProcessingTest]: ProcessingTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T00:54:38.891Z  INFO 2188 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.ProcessingTest
+2026-10-07T00:54:42.634Z  WARN 2188 --- [chat-jr] [           main] o.e.chatjr.service.ProcessingService     : 1 processamento(s) interrompido(s) foram marcados como falhos.
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 26.62 s -- in org.empresajr.chatjr.ProcessingTest
+[INFO] Running org.empresajr.chatjr.DemoDataLoaderTest
+2026-10-07T00:55:05.515Z  INFO 2188 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.DemoDataLoaderTest]: DemoDataLoaderTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T00:55:05.517Z  INFO 2188 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.DemoDataLoaderTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.5)
+
+2026-10-07T00:55:05.543Z  INFO 2188 --- [chat-jr] [           main] o.empresajr.chatjr.DemoDataLoaderTest    : Starting DemoDataLoaderTest using Java 21.0.12.1 with PID 2188 (started by runner in /home/runner/work/skyfallcopy/skyfallcopy)
+2026-10-07T00:55:05.543Z  INFO 2188 --- [chat-jr] [           main] o.empresajr.chatjr.DemoDataLoaderTest    : The following 1 profile is active: "demo"
+2026-10-07T00:55:05.717Z  INFO 2188 --- [chat-jr] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-07T00:55:05.730Z  INFO 2188 --- [chat-jr] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 12 ms. Found 13 JPA repository interfaces.
+2026-10-07T00:55:05.817Z  INFO 2188 --- [chat-jr] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 0 (http)
+2026-10-07T00:55:05.818Z  INFO 2188 --- [chat-jr] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-10-07T00:55:05.818Z  INFO 2188 --- [chat-jr] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-10-07T00:55:05.828Z  INFO 2188 --- [chat-jr] [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-10-07T00:55:05.828Z  INFO 2188 --- [chat-jr] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 284 ms
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+2026-10-07T00:55:05.905Z  INFO 2188 --- [chat-jr] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
+2026-10-07T00:55:05.924Z  INFO 2188 --- [chat-jr] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection org.postgresql.jdbc.PgConnection@6a48c579
+2026-10-07T00:55:05.924Z  INFO 2188 --- [chat-jr] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
+2026-10-07T00:55:05.925Z  INFO 2188 --- [chat-jr] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:32769/test (PostgreSQL 16.15)
+2026-10-07T00:55:05.935Z  INFO 2188 --- [chat-jr] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.005s)
+2026-10-07T00:55:05.947Z  INFO 2188 --- [chat-jr] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 1
+2026-10-07T00:55:05.948Z  INFO 2188 --- [chat-jr] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-10-07T00:55:05.973Z  INFO 2188 --- [chat-jr] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-10-07T00:55:05.975Z  INFO 2188 --- [chat-jr] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-10-07T00:55:05.981Z  INFO 2188 --- [chat-jr] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-07T00:55:06.204Z  INFO 2188 --- [chat-jr] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-07T00:55:06.204Z  INFO 2188 --- [chat-jr] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-07T00:55:06.708Z  INFO 2188 --- [chat-jr] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsService
+2026-10-07T00:55:06.716Z  INFO 2188 --- [chat-jr] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-10-07T00:55:06.776Z  INFO 2188 --- [chat-jr] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-10-07T00:55:06.886Z  INFO 2188 --- [chat-jr] [           main] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring TestDispatcherServlet ''
+2026-10-07T00:55:06.886Z  INFO 2188 --- [chat-jr] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-10-07T00:55:06.887Z  INFO 2188 --- [chat-jr] [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2026-10-07T00:55:06.905Z  INFO 2188 --- [chat-jr] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 43581 (http) with context path '/'
+2026-10-07T00:55:06.912Z  INFO 2188 --- [chat-jr] [           main] o.empresajr.chatjr.DemoDataLoaderTest    : Started DemoDataLoaderTest in 1.39 seconds (process running for 141.504)
+2026-10-07T00:55:06.922Z  INFO 2188 --- [chat-jr] [           main] o.e.chatjr.service.DemoDataLoader        : A instalação já foi feita: os dados de demonstração não serão criados.
+2026-10-07T00:55:07.925Z  INFO 2188 --- [chat-jr] [           main] o.e.chatjr.service.DemoDataLoader        : Dados de demonstração criados: administrador admin@demo.chatjr.test e 2 clientes.
+2026-10-07T00:55:08.499Z  INFO 2188 --- [chat-jr] [           main] o.e.chatjr.service.DemoDataLoader        : A instalação já foi feita: os dados de demonstração não serão criados.
+2026-10-07T00:55:09.435Z  INFO 2188 --- [chat-jr] [           main] o.e.chatjr.service.DemoDataLoader        : Dados de demonstração criados: administrador admin@demo.chatjr.test e 2 clientes.
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.923 s -- in org.empresajr.chatjr.DemoDataLoaderTest
+[INFO] Running org.empresajr.chatjr.ExportTest
+2026-10-07T00:55:09.439Z  INFO 2188 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.ExportTest]: ExportTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T00:55:09.441Z  INFO 2188 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.ExportTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.421 s -- in org.empresajr.chatjr.ExportTest
+[INFO] Running org.empresajr.chatjr.AiContentParserTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.AiContentParserTest
+[INFO] Running org.empresajr.chatjr.FrontendServingTest
+2026-10-07T00:55:18.865Z  INFO 2188 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.FrontendServingTest]: FrontendServingTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T00:55:18.867Z  INFO 2188 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.FrontendServingTest
+2026-10-07T00:55:19.005Z  INFO 2188 --- [chat-jr] [omcat-handler-0] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-07T00:55:19.006Z  INFO 2188 --- [chat-jr] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-07T00:55:19.007Z  INFO 2188 --- [chat-jr] [omcat-handler-0] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.358 s -- in org.empresajr.chatjr.FrontendServingTest
+[INFO] Running org.empresajr.chatjr.KnowledgeIndexTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in org.empresajr.chatjr.KnowledgeIndexTest
+[INFO] Running org.empresajr.chatjr.SessionCookieTest
+2026-10-07T00:55:19.231Z  INFO 2188 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.SessionCookieTest]: SessionCookieTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T00:55:19.233Z  INFO 2188 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.SessionCookieTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.687 s -- in org.empresajr.chatjr.SessionCookieTest
+[INFO] Running org.empresajr.chatjr.SecretCipherTest
+2026-10-07T00:55:19.925Z  WARN 2188 --- [chat-jr] [           main] o.empresajr.chatjr.service.SecretCipher  : CHATJR_SECRET não definida: usando uma chave temporária (perfil dev). Segredos gravados agora não poderão ser lidos após reiniciar.
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in org.empresajr.chatjr.SecretCipherTest
+[INFO] Running org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Running org.empresajr.chatjr.AuthFlowTest
+2026-10-07T00:55:19.936Z  INFO 2188 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.AuthFlowTest]: AuthFlowTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T00:55:19.940Z  INFO 2188 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.AuthFlowTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.47 s -- in org.empresajr.chatjr.AuthFlowTest
+[INFO] Running org.empresajr.chatjr.DefaultStagesTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.DefaultStagesTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 181, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ chat-jr ---
+[INFO] Building jar: /home/runner/work/skyfallcopy/skyfallcopy/target/chat-jr-1.0.0.jar
+[INFO] 
+[INFO] --- spring-boot:3.3.5:repackage (repackage) @ chat-jr ---
+[INFO] Loaded 50 auto-discovered prefixes for remote repository ow2-snapshot (prefixes-ow2-snapshot.txt)
+[INFO] Replacing main artifact /home/runner/work/skyfallcopy/skyfallcopy/target/chat-jr-1.0.0.jar with repackaged archive, adding nested dependencies in BOOT-INF/.
+[INFO] The original artifact has been renamed to /home/runner/work/skyfallcopy/skyfallcopy/target/chat-jr-1.0.0.jar.original
+[INFO] 
+[INFO] --- jacoco:0.8.12:report (report) @ chat-jr ---
+[INFO] Loading execution data file /home/runner/work/skyfallcopy/skyfallcopy/target/jacoco.exec
+[INFO] Analyzed bundle 'Chat Jr' with 142 classes
+[INFO] 
+[INFO] --- jacoco:0.8.12:check (check) @ chat-jr ---
+[INFO] Loading execution data file /home/runner/work/skyfallcopy/skyfallcopy/target/jacoco.exec
+[INFO] Analyzed bundle 'chat-jr' with 142 classes
+[INFO] All coverage checks have been met.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  03:00 min
+[INFO] Finished at: 2026-10-07T00:55:36Z
+[INFO] ------------------------------------------------------------------------
