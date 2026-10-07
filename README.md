@@ -45,6 +45,20 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev      # H2 em arquivo, sem Doc
 mvn verify                                              # compila e roda todos os testes (precisa de Docker para o PostgreSQL de teste)
 ```
 
+Teste de navegador (Playwright), o mesmo que roda no CI contra o jar real:
+
+```bash
+pip install playwright && playwright install chromium
+python3 e2e/mock_server.py 8099 &                                   # servidor de mentira, só para mexer na interface
+BASE_URL=http://127.0.0.1:8099 python3 e2e/run_e2e.py
+# contra o sistema real (banco vazio, perfil dev, IA simulada pelo próprio roteiro na porta 9099):
+#   java -jar target/*.jar --spring.profiles.active=dev --chatjr.ai.base-url=http://127.0.0.1:9099
+#   BASE_URL=http://127.0.0.1:8080 E2E_REAL=1 E2E_AI_STUB_PORT=9099 python3 e2e/run_e2e.py
+```
+
+O servidor de mentira imita a API para desenvolver a interface rápido; ele não substitui o backend. Quem vale é o teste
+contra o jar real, no CI.
+
 Perfil `demo` (junto de `dev`): cria um administrador e dois clientes de exemplo. Exige `CHATJR_DEMO_PASSWORD` e só roda
 em instalação vazia.
 
@@ -53,17 +67,25 @@ em instalação vazia.
 | Pasta | O que é |
 |---|---|
 | `src/`, `pom.xml` | Aplicação Java (Spring Boot 3.3, Java 21, PostgreSQL, Flyway) |
+| `src/main/resources/static/` | Interface web (HTML, CSS e JavaScript em módulos, sem build), servida pela própria aplicação |
+| `e2e/` | Teste de navegador da jornada completa e servidor de mentira para desenvolvimento |
 | `prototipo-estatico/` | Protótipo HTML da Fase 1 (dados no navegador, sem login real); referência de interface |
-| `docs/` | Documentação de operação do CI |
+| `docs/` | Documentação de operação do CI (o workflow em vigor fica em `.github/workflows/ci.yml`) |
 
 ## Segurança, em resumo
 
 Senhas com BCrypt; bloqueio após 5 erros em 15 minutos; sessão de 8 h com cookie `HttpOnly`, `Secure` e
 `SameSite=Strict`; proteção contra CSRF; convites de uso único; chave da IA cifrada (AES-256-GCM) e nunca devolvida pela
 API; todo HTML vindo da IA ou da consultoria passa por sanitização; trilha de auditoria de quem fez o quê.
+A interface só executa scripts do próprio site (`script-src 'self'`, sem scripts em linha), não carrega nada de
+servidores externos e não guarda dados do plano no navegador; um teste do build impede que isso regrida.
 A cobertura de testes de `domain` e `service` é verificada no build (mínimo de 70%).
 
 ## Estado
 
-Backend completo e testado (162 testes contra PostgreSQL real). **A interface web ainda é o protótipo da Fase 1**: a
-ligação da interface à API é a próxima etapa.
+Fase 2 concluída: backend e interface ligados e testados. O CI roda 181 testes Java (contra PostgreSQL real) e o teste de
+navegador da jornada completa contra o jar real, com IA simulada.
+
+Limites conhecidos: o envio de e-mail não existe (convites e redefinição de senha são links que a consultoria copia e
+envia); o `Dockerfile` e o `docker-compose.yml` não foram executados ainda; os arquivos estáticos não são guardados em
+cache pelo navegador (o Spring Security marca tudo como `no-store`), o que custa cerca de 500 KB por visita.
