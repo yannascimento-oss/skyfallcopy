@@ -15,6 +15,7 @@ from playwright.sync_api import sync_playwright, expect
 BASE = os.environ.get('BASE_URL', 'http://127.0.0.1:8099').rstrip('/')
 REAL = os.environ.get('E2E_REAL') == '1'
 STUB_PORT = int(os.environ.get('E2E_AI_STUB_PORT') or 0)
+STUB_BIND = os.environ.get('E2E_AI_STUB_BIND', '127.0.0.1')  # 0.0.0.0 quando o app roda em contêiner
 AXE = (Path(__file__).parent / 'vendor' / 'axe.min.js').read_text(encoding='utf-8')
 ADMIN_EMAIL, CLIENT_EMAIL = 'admin@e2e.chatjr.test', 'rafael@cafeteria.e2e.chatjr.test'
 ADMIN_PW, CLIENT_PW, CLIENT_PW2 = ['Aa1-' + secrets.token_hex(8) for _ in range(3)]
@@ -90,7 +91,7 @@ def start_ai_stub():
             data = json.dumps({'id': 'msg_e2e', 'type': 'message', 'role': 'assistant', 'model': body.get('model'), 'content': [{'type': 'text', 'text': text}],
                                'stop_reason': 'end_turn', 'usage': {'input_tokens': 100, 'output_tokens': 40}}).encode()
             self.send_response(200); self.send_header('Content-Type', 'application/json'); self.send_header('Content-Length', str(len(data))); self.end_headers(); self.wfile.write(data)
-    srv = ThreadingHTTPServer(('127.0.0.1', STUB_PORT), Stub)
+    srv = ThreadingHTTPServer((STUB_BIND, STUB_PORT), Stub)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
 
 
@@ -359,6 +360,23 @@ def run():
             expect(client.locator('.msg-infer-tag').last).to_have_text('Inferência', timeout=20000)
             check('rótulo "Inferência" aparece quando a IA deduz', True)
 
+        # chave removida pela tela: o processamento cai para o modo extrativo e o chat continua com fonte
+        go_nav(admin, 'Configurações')
+        admin.get_by_role('button', name='Remover chave').click()
+        admin.locator('.modal').get_by_role('button', name='Remover chave').click()
+        expect(admin.locator('#ai-badge')).to_have_text('IA sem chave', timeout=10000)
+        go_nav(admin, 'Conteúdo dos planos')
+        admin.locator('.ct-row', has_text='Mercado').first.click()
+        admin.get_by_role('button', name='Reprocessar').click()
+        # Espera a transição de verdade: o painel já mostrava "Processada" do processamento anterior.
+        expect(admin.locator('#att-panel .pill', has_text='Processando')).to_be_visible(timeout=10000)
+        expect(admin.locator('#att-panel .pill', has_text='Processada')).to_be_visible(timeout=40000)
+        check('sem chave, reprocessar usa o modo extrativo e avisa', 'sem IA' in admin.locator('#att-panel').inner_text())
+        go_nav(client, 'Consultar plano'); client.locator('.new-conv-btn').click()
+        client.locator('#chat-input').fill('Quanto o mercado cresce?'); client.locator('#send-btn').click()
+        expect(client.locator('.msg-row.ai .msg-bubble').last).to_contain_text('Fonte no plano', timeout=20000)
+        check('sem chave, o chat continua respondendo com a fonte (busca direta)', client.locator('.msg-row.ai').last.locator('.msg-note').count() == 1)
+
         go_nav(admin, 'Sistema')
         expect(admin.locator('#content')).to_contain_text('Em números')
         check('tela Sistema mostra 1 cliente', admin.locator('.stat-card', has_text='Clientes').inner_text().split('\n')[-1].strip() in ('1', 'Clientes\n1') or '1' in admin.locator('.stat-card', has_text='Clientes').inner_text())
@@ -417,6 +435,7 @@ def run():
         check('landing usa o logo novo da consultoria', '/api/public/logo' in (visitor.locator('.jr-topnav img').get_attribute('src') or ''))
         visitor.get_by_role('button', name='Solicitar acesso').click()
         axe(visitor, 'solicitar acesso')
+        shot(visitor, 'solicitar-acesso')
         visitor.locator('#rq-name').fill('Carla Souza'); visitor.locator('#rq-email').fill('carla@padaria.e2e.chatjr.test')
         visitor.locator('#rq-company').fill('Padaria Sol'); visitor.locator('#rq-message').fill('Queremos acompanhar o plano.')
         visitor.get_by_role('button', name='Enviar pedido').click()

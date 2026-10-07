@@ -181,4 +181,12 @@ class AccessRequestsAndDataTest extends AbstractIntegrationTest {
                 .andExpect(status().isPayloadTooLarge())
                 .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("grande demais")));
     }
+
+    @Test
+    void bodyWithoutDeclaredLengthIsRefused() throws Exception {
+        ClientLogin client = createClientAndLogin(admin, "Cliente");
+        mvc.perform(withCsrf(post("/api/chat")).session(client.session()).contentType(MediaType.APPLICATION_JSON)
+                        .header("Transfer-Encoding", "chunked"))
+                .andExpect(status().isLengthRequired());
+    }
 }

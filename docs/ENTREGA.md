@@ -14,7 +14,7 @@ Caminhos abaixo relativos a `src/main/java/org/empresajr/chatjr/` (Java) e `src/
 | 5 | JSON regravado inteiro | `db/migration/V1__schema.sql`, `V2__access_request.sql`, entidades em `domain/` | Testcontainers PostgreSQL em todos os testes de integração |
 | 6 | Ids `int` de timestamp | Ids `BIGINT` gerados pelo banco | Esquema |
 | 7 | pdf.js no navegador | `service/PdfTextExtractor` (PDFBox), `service/AttachmentService` (25 MB, 200 páginas) | `ProcessingTest` |
-| 8 | Sem limite de corpo | `config/RequestSizeFilter` (2 MB; 8 MB na importação), multipart de 25 MB, `web/GlobalExceptionHandler` (413) | `AccessRequestsAndDataTest`, `ProcessingTest` |
+| 8 | Sem limite de corpo | `config/RequestSizeFilter` (2 MB; 8 MB na importação; corpo sem tamanho declarado recusado com 411), multipart de 25 MB, `web/GlobalExceptionHandler` (413) | `AccessRequestsAndDataTest`, `ProcessingTest` |
 | 9 | Contexto truncado, `max_tokens` fixo | `domain/KnowledgeIndex` (BM25), `domain/PromptBuilder`, `max_tokens` na tela Configurações | `KnowledgeIndexTest`, `ChatTest` |
 | 10 | Sem testes | `src/test/java/...` (JUnit 5, Testcontainers), JaCoCo ≥ 70 % em `domain` e `service`, `e2e/run_e2e.py` | CI |
 | 11 | Escopo filtrado no JavaScript | `service/PlanService.visibleTabs`, `service/ChatService` | `PlanAccessTest`, `ChatTest` (aba bloqueada não entra no contexto), e2e |
@@ -25,7 +25,7 @@ Caminhos abaixo relativos a `src/main/java/org/empresajr/chatjr/` (Java) e `src/
 | 16 | Indicadores fixos | `domain/IndicatorCalculator`, `service/IndicatorService`; `js/views/indicators.js` (consultas, taxa com fonte, etapas mais consultadas, perguntas frequentes, etapas publicadas) | `KnowledgeIndexTest`, `ChatTest`, e2e |
 | 17 | Sem visibilidade | `/actuator/health`, `service/SystemInfoService`; tela Sistema | `AdminSettingsTest` |
 | 18 | Sem limite de uso | `service/LimitService` (60 perguntas/h, 20 processamentos/dia), configurável na tela | `ChatTest`, `ProcessingTest`, `AdminSettingsTest` |
-| 19 | Sem implantação | `Dockerfile`, `docker-compose.yml`, `.env.example`, `README.md` | **Não executado** (sem Docker no ambiente de desenvolvimento) |
+| 19 | Sem implantação | `Dockerfile`, `docker-compose.yml`, `.env.example`, `README.md` | CI: sobe o `docker compose` (imagem + PostgreSQL) e roda o teste de navegador completo contra ele |
 | 20 | Arquivo grande ou lento | Barra de progresso real no envio (`js/api.js`, `uploadWithProgress`); processamento assíncrono com estado no servidor, dá para sair e voltar | `ProcessingTest`, e2e |
 | 21 | Sem exportação | `service/ExportService`, `service/PdfExporter`; botões no Plano (cliente) e em Conteúdo dos planos (consultoria), mais importação de JSON | `ExportTest`, `AccessRequestsAndDataTest` |
 | 22 | Acessibilidade | Navegação por teclado, `aria-label`, foco visível, contraste AA, diálogos com foco preso | axe-core no e2e (todas as telas, claro e escuro) |
@@ -48,12 +48,12 @@ Caminhos abaixo relativos a `src/main/java/org/empresajr/chatjr/` (Java) e `src/
 
 | Critério | Estado |
 |---|---|
-| `docker compose up` sobe tudo | **Não verificado**: não houve Docker disponível. É o primeiro passo antes da produção |
+| `docker compose up` sobe tudo | Coberto pelo CI: a pilha sobe com PostgreSQL e passa pelo teste de navegador completo (resultado em `ci-logs`) |
 | Assistente de instalação na primeira subida | Verificado (e2e contra o jar real) |
 | Consultoria e cliente veem o mesmo plano | Verificado (e2e, dois navegadores) |
 | Toda aba, inclusive nova, tem PDF, link e processar | Verificado |
-| PDF de 10 MB extraído no servidor | Limite de 25 MB testado; um PDF real de 10 MB não foi testado |
-| Sem chave, processamento extrativo e chat com fonte | Verificado (`ProcessingTest`, `ChatTest`, e2e) |
+| PDF de 10 MB extraído no servidor | `ProcessingTest.upload_readsATenMegabytePdfOnTheServer` (PDF de mais de 10 MB, texto extraído pelo PDFBox) |
+| Sem chave, processamento extrativo e chat com fonte | `ProcessingTest`, `ChatTest` e e2e (a chave é removida pela tela, a etapa é reprocessada e o chat responde com fonte) |
 | Aba bloqueada fora da API e do chat | Verificado por teste automatizado |
 | 403 no plano de outro cliente | Verificado (`PlanAccessTest`, `ExportTest`) |
 | Chave nunca nas respostas | Verificado por teste |

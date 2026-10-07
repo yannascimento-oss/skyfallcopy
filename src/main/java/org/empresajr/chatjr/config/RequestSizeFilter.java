@@ -33,6 +33,11 @@ public class RequestSizeFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         long limit = request.getRequestURI().endsWith("/import") ? IMPORT_LIMIT : DEFAULT_LIMIT;
+        // Corpo sem tamanho declarado (envio em pedaços) escaparia do limite: o navegador sempre declara, então recusa.
+        if (request.getContentLengthLong() < 0 && request.getHeader("Transfer-Encoding") != null) {
+            JsonErrors.write(response, 411, "Envie a requisição com o tamanho do conteúdo declarado.");
+            return;
+        }
         if (request.getContentLengthLong() > limit) {
             JsonErrors.write(response, 413, "O conteúdo enviado é grande demais (limite de " + (limit / 1024 / 1024) + " MB).");
             return;

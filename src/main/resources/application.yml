@@ -27,6 +27,9 @@ spring:
 
 server:
   port: ${PORT:8080}
+  # Atrás de proxy reverso (Easypanel, nginx): usa o IP e o protocolo repassados, mas só quando a conexão vem de
+  # rede interna (padrão do Tomcat). Cliente externo não consegue forjar o próprio IP.
+  forward-headers-strategy: native
   servlet:
     session:
       timeout: 8h

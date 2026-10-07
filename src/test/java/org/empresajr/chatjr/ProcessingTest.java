@@ -6,6 +6,8 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.empresajr.chatjr.service.ProcessingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,12 +18,14 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 import static org.awaitility.Awaitility.await;
@@ -133,6 +137,48 @@ class ProcessingTest extends AbstractIntegrationTest {
     }
 
     // ---------- upload ----------
+
+    @Test
+    void upload_readsATenMegabytePdfOnTheServer() throws Exception {
+        byte[] big = bigPdf();
+        assertTrue(big.length >= 10 * 1024 * 1024, "o arquivo de teste precisa ter 10 MB ou mais, tem " + big.length);
+        upload(big, "plano-grande.pdf")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hasPdf").value(true))
+                .andExpect(jsonPath("$.pdfPages").value(2));
+        String text = jdbc.queryForObject("SELECT pdf_text FROM attachment WHERE tab_id = ?", String.class, tabId);
+        assertTrue(text.contains("dez por cento"), "o texto da primeira página precisa ser extraído no servidor");
+    }
+
+    /** PDF com 10 MB ou mais: uma página de texto e outra com uma imagem de ruído, que não comprime. */
+    private static byte[] bigPdf() throws Exception {
+        try (PDDocument doc = new PDDocument(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            PDPage textPage = new PDPage();
+            doc.addPage(textPage);
+            try (PDPageContentStream cs = new PDPageContentStream(doc, textPage)) {
+                cs.beginText();
+                cs.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                cs.newLineAtOffset(50, 700);
+                cs.showText(PLAN_TEXT);
+                cs.endText();
+            }
+            BufferedImage noise = new BufferedImage(1950, 1950, BufferedImage.TYPE_INT_RGB);
+            Random random = new Random(42);
+            for (int y = 0; y < noise.getHeight(); y++) {
+                for (int x = 0; x < noise.getWidth(); x++) {
+                    noise.setRGB(x, y, random.nextInt(0x1000000));
+                }
+            }
+            PDImageXObject image = LosslessFactory.createFromImage(doc, noise);
+            PDPage imagePage = new PDPage();
+            doc.addPage(imagePage);
+            try (PDPageContentStream cs = new PDPageContentStream(doc, imagePage)) {
+                cs.drawImage(image, 0, 0, 600, 600);
+            }
+            doc.save(out);
+            return out.toByteArray();
+        }
+    }
 
     @Test
     void upload_extractsTextAndStoresTheOriginalFile() throws Exception {

@@ -7,7 +7,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -20,31 +20,66 @@ jobs:
         run: |
           set -o pipefail
           mvn -B -ntp verify 2>&1 | tee build.log
-      - name: Teste de navegador (jar real, IA simulada)
+      - name: Preparar o navegador do teste
+        if: steps.mvn.outcome == 'success'
+        run: |
+          python3 -m pip install -q playwright
+          python3 -m playwright install --with-deps chromium
+      - name: Teste de navegador (jar real, H2, IA simulada)
         id: e2e
         if: steps.mvn.outcome == 'success'
         continue-on-error: true
         run: |
           set -o pipefail
-          python3 -m pip install -q playwright
-          python3 -m playwright install --with-deps chromium
           export CHATJR_SECRET="$(openssl rand -hex 32)"
           export CHATJR_DATA="$RUNNER_TEMP/chatjr-e2e"
           JAR=$(ls target/*.jar | grep -v original | head -1)
           java -jar "$JAR" --spring.profiles.active=dev --chatjr.ai.base-url=http://127.0.0.1:9099 > app.log 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8080/actuator/health >/dev/null && break; sleep 2; done
           BASE_URL=http://127.0.0.1:8080 E2E_REAL=1 E2E_AI_STUB_PORT=9099 python3 e2e/run_e2e.py 2>&1 | tee e2e.log
+          kill %1 || true
+      - name: Teste de navegador (docker compose, PostgreSQL, IA simulada)
+        id: docker
+        if: steps.mvn.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          {
+            echo "DB_PASSWORD=$(openssl rand -hex 16)"
+            echo "CHATJR_SECRET=$(openssl rand -hex 32)"
+            echo "CHATJR_COOKIE_SECURE=false"
+            echo "PORT=8081"
+          } > .env
+          cat > compose.ci.yml <<'EOF'
+          services:
+            app:
+              extra_hosts: ["host.docker.internal:host-gateway"]
+              environment:
+                CHATJR_AI_BASE_URL: http://host.docker.internal:9099
+          EOF
+          docker compose -f docker-compose.yml -f compose.ci.yml up -d --build 2>&1 | tail -20
+          ok=0; for i in $(seq 1 90); do if curl -sf http://127.0.0.1:8081/actuator/health | grep -q UP; then ok=1; break; fi; sleep 2; done
+          echo "saúde do contêiner: $ok"
+          docker compose ps
+          BASE_URL=http://127.0.0.1:8081 E2E_REAL=1 E2E_AI_STUB_PORT=9099 E2E_AI_STUB_BIND=0.0.0.0 python3 e2e/run_e2e.py 2>&1 | tee e2e-docker.log
+          rc=$?
+          docker compose logs app 2>&1 | tail -120 > docker-app.log
+          docker compose down -v
+          exit $rc
       - name: Publicar resumo na branch ci-logs
         if: always()
         run: |
           set +e
           {
-            echo "commit: $GITHUB_SHA  branch: $GITHUB_REF_NAME  resultado: ${{ steps.mvn.outcome }}  navegador: ${{ steps.e2e.outcome }}"
+            echo "commit: $GITHUB_SHA  branch: $GITHUB_REF_NAME  resultado: ${{ steps.mvn.outcome }}  navegador: ${{ steps.e2e.outcome }}  docker: ${{ steps.docker.outcome }}"
             grep -E "Tests run:|BUILD|ERROR|FAIL" build.log | head -250
             for f in $(grep -l -E "FAILURE|ERROR" target/surefire-reports/*.txt 2>/dev/null); do echo "--- $f"; head -60 "$f"; done
-            echo "=== teste de navegador ==="
+            echo "=== teste de navegador (jar) ==="
             if [ -f e2e.log ]; then grep -E "FALHA|verificações|Traceback|Error" e2e.log | head -60; fi
             if [ "${{ steps.e2e.outcome }}" = "failure" ]; then echo "--- app.log (fim)"; tail -80 app.log; echo "--- e2e.log (fim)"; tail -40 e2e.log; fi
+            echo "=== teste de navegador (docker compose) ==="
+            if [ -f e2e-docker.log ]; then grep -E "FALHA|verificações|Traceback|Error" e2e-docker.log | head -60; fi
+            if [ "${{ steps.docker.outcome }}" = "failure" ]; then echo "--- docker-app.log"; cat docker-app.log 2>/dev/null; echo "--- e2e-docker.log (fim)"; tail -40 e2e-docker.log 2>/dev/null; fi
             echo "=== fim do log ==="; tail -150 build.log
           } > /tmp/resumo.txt
           git config user.name github-actions
@@ -54,6 +89,6 @@ jobs:
           mkdir -p resumos && cp /tmp/resumo.txt resumos/$GITHUB_SHA.txt
           git add resumos && git commit -q -m "resumo $GITHUB_SHA"
           for i in 1 2 3; do git push -q origin ci-logs && break; git pull -q --rebase origin ci-logs; done
-      - name: Falhar o job se o teste de navegador falhou
-        if: steps.e2e.outcome == 'failure'
+      - name: Falhar o job se algum teste de navegador falhou
+        if: steps.e2e.outcome == 'failure' || steps.docker.outcome == 'failure'
         run: exit 1

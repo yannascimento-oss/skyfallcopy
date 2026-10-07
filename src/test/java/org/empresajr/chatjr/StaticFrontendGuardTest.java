@@ -100,6 +100,18 @@ class StaticFrontendGuardTest {
     }
 
     @Test
+    void noNativeBrowserDialogs() throws IOException {
+        // alert(), confirm() e prompt() do navegador travam a tela e não seguem a identidade visual: a interface usa
+        // os próprios diálogos (openModal, confirmDialog). O padrão não pega confirmDialog( nem métodos como x.confirm(.
+        Pattern nativeDialog = Pattern.compile("(?<![\\w.$])(?:window\\.)?(alert|confirm|prompt)\\s*\\(");
+        for (Path file : files(".js")) {
+            Matcher m = nativeDialog.matcher(read(file));
+            boolean found = m.find();
+            assertTrue(!found, file + " usa " + (found ? m.group(1) : "") + "() do navegador; use os diálogos de ui.js");
+        }
+    }
+
+    @Test
     void browserStorageIsUsedOnlyForTheThemePreference() throws IOException {
         for (Path file : files(".js")) {
             if (file.getFileName().toString().equals("ui.js")) {

@@ -90,11 +90,12 @@ A cobertura de testes de `domain` e `service` é verificada no build (mínimo de
 
 ## Estado
 
-Fase 2 concluída: backend e interface ligados e testados. O CI roda os testes Java (contra PostgreSQL real) e o teste de
-navegador da jornada completa contra o jar real, com IA simulada. A correspondência entre os 22 defeitos do briefing e o
-código está em [`docs/ENTREGA.md`](docs/ENTREGA.md).
+Fase 2 concluída: backend e interface ligados e testados. O CI roda os testes Java (contra PostgreSQL real) e o mesmo
+teste de navegador da jornada completa duas vezes, com IA simulada: contra o jar (perfil `dev`, H2) e contra a pilha do
+`docker compose` (imagem do `Dockerfile` + PostgreSQL). O resultado de cada execução fica na branch `ci-logs`.
+A correspondência entre os 22 defeitos do briefing e o código está em [`docs/ENTREGA.md`](docs/ENTREGA.md).
 
 Limites conhecidos: o envio de e-mail não existe (convites e redefinição de senha são links que a consultoria copia e
-envia); o `Dockerfile` e o `docker-compose.yml` não foram executados ainda; os arquivos estáticos não são guardados em
-cache pelo navegador (o Spring Security marca tudo como `no-store`), o que custa cerca de 500 KB por visita; o limite de pedidos de acesso por origem (5 por hora) usa o endereço que chega
-ao servidor, então atrás de um proxy reverso configure `server.forward-headers-strategy=native` para valer por visitante.
+envia); os arquivos estáticos não são guardados em cache pelo navegador (o Spring Security marca tudo como `no-store`),
+o que custa cerca de 500 KB por visita. Atrás de proxy reverso (Easypanel, nginx), o sistema usa o IP repassado pelo
+proxy só quando a conexão vem de rede interna (`server.forward-headers-strategy: native`).
