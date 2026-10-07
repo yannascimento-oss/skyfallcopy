@@ -1,92 +1,91 @@
 # Chat Jr — Seu Plano de Negócios
 
-Interface web (HTML + CSS + JavaScript puro) para consultar o Plano de Negócios da Empresa JR usando a API da Anthropic (Claude).
+Plataforma da Empresa JR (Administração UFBA). O cliente consulta, em linguagem natural, o Plano de Negócios entregue
+pela consultoria. A IA trabalha nos bastidores: lê o PDF de cada etapa, responde **só a partir dele** e indica a etapa
+usada. Cada cliente enxerga apenas o próprio plano, e apenas as etapas que a consultoria publicou e liberou.
 
-## Estrutura do projeto
+## Subir o sistema (Docker)
 
-```
-chat-jr/
-├── index.html          # Estrutura da página e templates de view
-├── css/
-│   └── styles.css      # Estilos, tokens de tema (claro/escuro) e layout
-├── js/
-│   └── app.js          # Lógica: dados, roteador, IA, PDF, persistência
-├── README.md
-├── .gitignore
-└── package.json        # Opcional (só para servir com `npm start`)
-```
-
-## Como rodar localmente
-
-O projeto é 100% estático — não precisa de build. Duas opções:
-
-### 1. Abrir direto no navegador
-Basta abrir `index.html` no navegador. Alguns recursos (como leitura de PDF) precisam de servidor HTTP para funcionar bem.
-
-### 2. Rodar um servidor local (recomendado)
-Se você tem Node.js instalado:
+Requisitos: Docker com Compose.
 
 ```bash
-npm start
+cp .env.example .env        # preencha DB_PASSWORD e CHATJR_SECRET (instruções dentro do arquivo)
+docker compose up -d --build
 ```
 
-Isso sobe um servidor estático em `http://localhost:8080`.
+Abra `http://localhost:8080`. No primeiro acesso a tela de **instalação** pede o nome da consultoria, o primeiro
+administrador (e-mail e senha) e, se quiser, a chave da IA. Nada mais é configurado em arquivo.
 
-Ou, sem instalar nada, use a extensão **Live Server** do VS Code — clique com o botão direito no `index.html` e escolha *"Open with Live Server"*.
+| Variável (`.env`) | Para quê |
+|---|---|
+| `DB_PASSWORD` | Senha do PostgreSQL. **Obrigatória** |
+| `CHATJR_SECRET` | Texto aleatório de 32+ caracteres que cifra a chave da IA no banco. **Obrigatória.** Gere com `openssl rand -base64 48` e guarde: sem ela a chave da IA gravada não pode ser lida (basta cadastrá-la de novo) |
+| `CHATJR_COOKIE_SECURE` | `true` (padrão) exige HTTPS, exceto em localhost. Use `false` só se publicar sem HTTPS |
+| `ANTHROPIC_API_KEY` | Opcional. Valor inicial da chave; depois é gerida na tela **Integração de IA** |
 
-## Como subir no git
+## Dia a dia
 
-Dentro da pasta `chat-jr/`:
+- **Convites:** o sistema não envia e-mail. Ao criar um cliente ou administrador, copie o link do convite e envie você
+  mesmo. Ele vale 48 horas e só funciona uma vez.
+- **Chave da IA, modelo, limites e custo estimado:** telas **Integração de IA** e **Sistema** (inclui "testar conexão").
+- **Sem IA:** se a chave faltar ou a API falhar, o cliente recebe os trechos do próprio plano mais próximos da pergunta, e
+  o processamento de PDF gera o conteúdo sem reescrita. O sistema continua utilizável.
+- **Backup:** guarde o banco e os arquivos.
+  ```bash
+  docker compose exec db pg_dump -U chatjr chatjr > backup-$(date +%F).sql
+  docker run --rm -v chatjr_chatjr-data:/data -v "$PWD":/out alpine tar czf /out/arquivos-$(date +%F).tgz -C /data .
+  ```
+- **Atualizar:** `git pull && docker compose up -d --build` (as migrações do banco rodam sozinhas).
+- **Saúde:** `GET /actuator/health` devolve `{"status":"UP"}`.
+
+## Desenvolvimento
 
 ```bash
-git init
-git add .
-git commit -m "Primeira versão do Chat Jr"
-git branch -M main
-git remote add origin https://github.com/SEU-USUARIO/SEU-REPO.git
-git push -u origin main
+mvn spring-boot:run -Dspring-boot.run.profiles=dev      # H2 em arquivo, sem Docker
+mvn verify                                              # compila e roda todos os testes (precisa de Docker para o PostgreSQL de teste)
 ```
 
-## Perfis de acesso (versão estática)
+Teste de navegador (Playwright), o mesmo que roda no CI contra o jar real:
 
-- **Cliente**: lê o plano, consulta o chat e vê os indicadores de uso. Não vê anexos, processamento, configurações nem a lista de clientes.
-- **Administrador (consultoria)**: cadastra clientes, abre o painel de cada um, anexa material, processa com IA e acessa Configurações.
-- Não existe tela pública de "Criar conta": o acesso é criado pela consultoria em **Clientes & Planos → Novo cliente**.
+```bash
+pip install playwright && playwright install chromium
+python3 e2e/mock_server.py 8099 &                                   # servidor de mentira, só para mexer na interface
+BASE_URL=http://127.0.0.1:8099 python3 e2e/run_e2e.py
+# contra o sistema real (banco vazio, perfil dev, IA simulada pelo próprio roteiro na porta 9099):
+#   java -jar target/*.jar --spring.profiles.active=dev --chatjr.ai.base-url=http://127.0.0.1:9099
+#   BASE_URL=http://127.0.0.1:8080 E2E_REAL=1 E2E_AI_STUB_PORT=9099 python3 e2e/run_e2e.py
+```
 
-Contas de demonstração: `consultoria@empresajr.org` (administrador) e os e-mails dos clientes listados em Clientes & Planos.
+O servidor de mentira imita a API para desenvolver a interface rápido; ele não substitui o backend. Quem vale é o teste
+contra o jar real, no CI.
 
-> **Atenção: isto não é segurança de verdade.** Esta versão não tem servidor. O perfil vem da conta, mas a senha **não é verificada** e todos os dados ficam no `localStorage` do navegador, então qualquer pessoa com o DevTools consegue ler ou alterar tudo. Autenticação com senha cifrada, autorização por perfil e isolamento entre clientes só existem na versão com backend (Java/Spring Boot). Não coloque dados reais de clientes nesta versão.
+Perfil `demo` (junto de `dev`): cria um administrador e dois clientes de exemplo. Exige `CHATJR_DEMO_PASSWORD` e só roda
+em instalação vazia.
 
-## Conteúdo dos planos (administração)
+## Estrutura
 
-Em **Conteúdo dos planos** a consultoria escolhe um cliente e gerencia cada etapa: título, descrição curta, "o que é", objetivo, principais pontos, perguntas sugeridas, fonte (PDF ou link), processamento com IA e publicação.
+| Pasta | O que é |
+|---|---|
+| `src/`, `pom.xml` | Aplicação Java (Spring Boot 3.3, Java 21, PostgreSQL, Flyway) |
+| `src/main/resources/static/` | Interface web (HTML, CSS e JavaScript em módulos, sem build), servida pela própria aplicação |
+| `e2e/` | Teste de navegador da jornada completa e servidor de mentira para desenvolvimento |
+| `prototipo-estatico/` | Protótipo HTML da Fase 1 (dados no navegador, sem login real); referência de interface |
+| `docs/` | Documentação de operação do CI (o workflow em vigor fica em `.github/workflows/ci.yml`) |
 
-- Ao processar uma etapa, a IA devolve o texto **e** os metadados. Só são gravados os campos que o material sustenta; o que a IA deixar vazio não sobrescreve o que a consultoria já editou.
-- O HTML vindo da IA passa por uma lista de tags permitidas (`p b ul ol li h4 table tr th td`) antes de ser gravado ou exibido.
-- Uma etapa **não publicada** some da visão do cliente e fica fora do contexto do chat.
-- Etapas de demonstração mostram só uma definição genérica de "o que é" e "objetivo". Reprocessar com IA troca isso pelo que o material do cliente realmente diz.
+## Segurança, em resumo
 
-## Interface e acessibilidade
+Senhas com BCrypt; bloqueio após 5 erros em 15 minutos; sessão de 8 h com cookie `HttpOnly`, `Secure` e
+`SameSite=Strict`; proteção contra CSRF; convites de uso único; chave da IA cifrada (AES-256-GCM) e nunca devolvida pela
+API; todo HTML vindo da IA ou da consultoria passa por sanitização; trilha de auditoria de quem fez o quê.
+A interface só executa scripts do próprio site (`script-src 'self'`, sem scripts em linha), não carrega nada de
+servidores externos e não guarda dados do plano no navegador; um teste do build impede que isso regrida.
+A cobertura de testes de `domain` e `service` é verificada no build (mínimo de 70%).
 
-- Visual sóbrio e plano: sem gradientes, brilho ou sombras no app; azul institucional só para ação e seleção; verde, amarelo e vermelho só para estado. A identidade da landing (navy, amarelo, logo) foi mantida.
-- Sidebar discreta; no celular ela vira gaveta e a tabela de clientes vira lista de cartões.
-- Auditoria com axe-core (WCAG A/AA e boas práticas): 0 violações em todas as telas, nos modos claro e escuro. Navegação por teclado, foco visível, `aria-current` no menu, diálogos com `Esc` e retorno de foco.
-- Estados cobertos: plano ainda não publicado, etapa sem conteúdo, cliente suspenso (inclusive com a sessão aberta), sessão expirada (8 h), assistente temporariamente indisponível e listas vazias.
+## Estado
 
-## Testes
+Fase 2 concluída: backend e interface ligados e testados. O CI roda 181 testes Java (contra PostgreSQL real) e o teste de
+navegador da jornada completa contra o jar real, com IA simulada.
 
-Veja `tests/README.md`. Cobrem perfis, login, publicação, indicadores, sanitização do HTML da IA, layout em 4 tamanhos de tela e acessibilidade.
-
-## Configuração da IA
-
-- Abra **Configurações → Inteligência artificial** dentro do app.
-- Cole sua chave da API Anthropic (formato `sk-ant-...`).
-- A chave fica **só no navegador**; nada é enviado para outro servidor.
-- Sem chave, o app usa leitura local do PDF como alternativa.
-
-## Persistência
-
-Todos os dados (planos, abas, conversas) ficam salvos no `localStorage` do navegador. Você pode:
-- Exportar em JSON pela tela de Configurações.
-- Restaurar um JSON exportado antes.
-- Apagar tudo e voltar ao estado de demonstração.
+Limites conhecidos: o envio de e-mail não existe (convites e redefinição de senha são links que a consultoria copia e
+envia); o `Dockerfile` e o `docker-compose.yml` não foram executados ainda; os arquivos estáticos não são guardados em
+cache pelo navegador (o Spring Security marca tudo como `no-store`), o que custa cerca de 500 KB por visita.

@@ -1,0 +1,38 @@
+# Chat Jr + PostgreSQL. Uso: copie .env.example para .env, preencha os valores e rode "docker compose up -d".
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chatjr
+      POSTGRES_USER: chatjr
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no arquivo .env}
+    volumes:
+      - chatjr-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatjr -d chatjr"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/chatjr
+      DB_USER: chatjr
+      DB_PASSWORD: ${DB_PASSWORD}
+      CHATJR_SECRET: ${CHATJR_SECRET:?Defina CHATJR_SECRET (texto longo e aleatório) no arquivo .env}
+      CHATJR_COOKIE_SECURE: ${CHATJR_COOKIE_SECURE:-true}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports:
+      - "${PORT:-8080}:8080"
+    volumes:
+      - chatjr-data:/data
+
+volumes:
+  chatjr-db:
+  chatjr-data:
