@@ -1,0 +1,211 @@
+commit: d9e8759a1b18b030394c45a89ed09d778fc84a47  branch: main  resultado: failure  navegador: skipped  docker: skipped
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.231 s -- in org.empresajr.chatjr.StaticFrontendGuardTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.043 s -- in org.empresajr.chatjr.ClientAccountTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.415 s -- in org.empresajr.chatjr.ChatAnswerParserTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.027 s -- in org.empresajr.chatjr.TextChunkerTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 36.65 s -- in org.empresajr.chatjr.AccountSelfServiceTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.71 s -- in org.empresajr.chatjr.PlanAccessTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.96 s -- in org.empresajr.chatjr.AdminSettingsTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.empresajr.chatjr.SettingsMaskTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.PasswordPolicyTest
+[INFO] Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 38.24 s -- in org.empresajr.chatjr.ChatTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.87 s -- in org.empresajr.chatjr.AdminUsersTest
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 29.48 s -- in org.empresajr.chatjr.ProcessingTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.492 s -- in org.empresajr.chatjr.DemoDataLoaderTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.921 s -- in org.empresajr.chatjr.ExportTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.AiContentParserTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.462 s -- in org.empresajr.chatjr.FrontendServingTest
+[ERROR] Tests run: 8, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 10.74 s <<< FAILURE! -- in org.empresajr.chatjr.AccessRequestsAndDataTest
+[ERROR] org.empresajr.chatjr.AccessRequestsAndDataTest.visitorRequestsAccessAndTheConsultancySeesAndClosesIt -- Time elapsed: 0.648 s <<< FAILURE!
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in org.empresajr.chatjr.KnowledgeIndexTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.802 s -- in org.empresajr.chatjr.SessionCookieTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in org.empresajr.chatjr.SecretCipherTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.78 s -- in org.empresajr.chatjr.AuthFlowTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.DefaultStagesTest
+[ERROR] Failures: 
+[ERROR]   AccessRequestsAndDataTest.visitorRequestsAccessAndTheConsultancySeesAndClosesIt:62 expected: <1> but was: <6>
+[ERROR] Tests run: 191, Failures: 1, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.2.5:test (default-test) on project chat-jr: There are test failures.
+[ERROR] 
+[ERROR] Please refer to /home/runner/work/skyfallcopy/skyfallcopy/target/surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+--- target/surefire-reports/org.empresajr.chatjr.AccessRequestsAndDataTest.txt
+-------------------------------------------------------------------------------
+Test set: org.empresajr.chatjr.AccessRequestsAndDataTest
+-------------------------------------------------------------------------------
+Tests run: 8, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 10.74 s <<< FAILURE! -- in org.empresajr.chatjr.AccessRequestsAndDataTest
+org.empresajr.chatjr.AccessRequestsAndDataTest.visitorRequestsAccessAndTheConsultancySeesAndClosesIt -- Time elapsed: 0.648 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <1> but was: <6>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:150)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:145)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:531)
+	at org.empresajr.chatjr.AccessRequestsAndDataTest.visitorRequestsAccessAndTheConsultancySeesAndClosesIt(AccessRequestsAndDataTest.java:62)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+=== teste de navegador (jar) ===
+=== teste de navegador (docker compose) ===
+=== fim do log ===
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 202
+    Error message = null
+          Headers = [X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"same-origin"]
+     Content type = null
+             Body = 
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = POST
+      Request URI = /api/access-requests
+       Parameters = {}
+          Headers = [Content-Type:"application/json;charset=UTF-8", X-XSRF-TOKEN:"token-csrf-de-teste", Content-Length:"87", Cookie:"XSRF-TOKEN=token-csrf-de-teste"]
+             Body = {"name":"Robô","website":"http://spam","company":"X","email":"u675f77cb@exemplo.test"}
+    Session Attrs = {}
+
+Handler:
+             Type = org.empresajr.chatjr.web.AccessRequestController
+           Method = org.empresajr.chatjr.web.AccessRequestController#submit(AccessRequestBody, HttpServletRequest)
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 202
+    Error message = null
+          Headers = [X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"same-origin"]
+     Content type = null
+             Body = 
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = []
+
+MockHttpServletRequest:
+      HTTP Method = GET
+      Request URI = /api/admin/access-requests
+       Parameters = {}
+          Headers = []
+             Body = null
+    Session Attrs = {SPRING_SECURITY_CONTEXT=SecurityContextImpl [Authentication=UsernamePasswordAuthenticationToken [Principal=AccountPrincipal[id=1, email=u7e358d1e@exemplo.test, name=Admin de Teste, role=ADMIN], Credentials=[PROTECTED], Authenticated=true, Details=null, Granted Authorities=[ROLE_ADMIN]]]}
+
+Handler:
+             Type = org.empresajr.chatjr.web.AccessRequestController
+           Method = org.empresajr.chatjr.web.AccessRequestController#open()
+
+Async:
+    Async started = false
+     Async result = null
+
+Resolved Exception:
+             Type = null
+
+ModelAndView:
+        View name = null
+             View = null
+            Model = null
+
+FlashMap:
+       Attributes = null
+
+MockHttpServletResponse:
+           Status = 200
+    Error message = null
+          Headers = [Set-Cookie:"XSRF-TOKEN=0ec52b18-a4c3-4fae-be2e-d8bc30264b4b; Path=/; Secure", Content-Type:"application/json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY", Content-Security-Policy:"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'", Referrer-Policy:"same-origin"]
+     Content type = application/json
+             Body = [{"id":1,"name":"A","email":"ua6ad6681@exemplo.test","company":"B","phone":null,"message":null,"createdAt":"2026-10-07T15:25:34.490201Z"},{"id":2,"name":"A","email":"u2e79e76f@exemplo.test","company":"B","phone":null,"message":null,"createdAt":"2026-10-07T15:25:34.497538Z"},{"id":3,"name":"A","email":"u16dfebb2@exemplo.test","company":"B","phone":null,"message":null,"createdAt":"2026-10-07T15:25:34.500511Z"},{"id":4,"name":"A","email":"u343bd566@exemplo.test","company":"B","phone":null,"message":null,"createdAt":"2026-10-07T15:25:34.503614Z"},{"id":5,"name":"A","email":"u2595ed8f@exemplo.test","company":"B","phone":null,"message":null,"createdAt":"2026-10-07T15:25:34.506593Z"},{"id":6,"name":"Carla","email":"udb0311c2@exemplo.test","company":"Padaria Sol","phone":null,"message":"Quero o plano","createdAt":"2026-10-07T15:25:38.226254Z"}]
+    Forwarded URL = null
+   Redirected URL = null
+          Cookies = [[Cookie@31de1963 name = 'XSRF-TOKEN', value = '0ec52b18-a4c3-4fae-be2e-d8bc30264b4b', comment = [null], domain = [null], maxAge = -1, path = '/', secure = true, version = 0, httpOnly = false]]
+[ERROR] Tests run: 8, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 10.74 s <<< FAILURE! -- in org.empresajr.chatjr.AccessRequestsAndDataTest
+[ERROR] org.empresajr.chatjr.AccessRequestsAndDataTest.visitorRequestsAccessAndTheConsultancySeesAndClosesIt -- Time elapsed: 0.648 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: expected: <1> but was: <6>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:150)
+	at org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:145)
+	at org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:531)
+	at org.empresajr.chatjr.AccessRequestsAndDataTest.visitorRequestsAccessAndTheConsultancySeesAndClosesIt(AccessRequestsAndDataTest.java:62)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[INFO] Running org.empresajr.chatjr.KnowledgeIndexTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in org.empresajr.chatjr.KnowledgeIndexTest
+[INFO] Running org.empresajr.chatjr.SessionCookieTest
+2026-10-07T15:25:39.493Z  INFO 2429 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.SessionCookieTest]: SessionCookieTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T15:25:39.495Z  INFO 2429 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.SessionCookieTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.802 s -- in org.empresajr.chatjr.SessionCookieTest
+[INFO] Running org.empresajr.chatjr.SecretCipherTest
+2026-10-07T15:25:40.305Z  WARN 2429 --- [chat-jr] [           main] o.empresajr.chatjr.service.SecretCipher  : CHATJR_SECRET não definida: usando uma chave temporária (perfil dev). Segredos gravados agora não poderão ser lidos após reiniciar.
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in org.empresajr.chatjr.SecretCipherTest
+[INFO] Running org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.empresajr.chatjr.HtmlSanitizerTest
+[INFO] Running org.empresajr.chatjr.AuthFlowTest
+2026-10-07T15:25:40.313Z  INFO 2429 --- [chat-jr] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [org.empresajr.chatjr.AuthFlowTest]: AuthFlowTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-10-07T15:25:40.316Z  INFO 2429 --- [chat-jr] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration org.empresajr.chatjr.ChatJrApplication for test class org.empresajr.chatjr.AuthFlowTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.78 s -- in org.empresajr.chatjr.AuthFlowTest
+[INFO] Running org.empresajr.chatjr.DefaultStagesTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.empresajr.chatjr.DefaultStagesTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   AccessRequestsAndDataTest.visitorRequestsAccessAndTheConsultancySeesAndClosesIt:62 expected: <1> but was: <6>
+[INFO] 
+[ERROR] Tests run: 191, Failures: 1, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  03:27 min
+[INFO] Finished at: 2026-10-07T15:25:55Z
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.2.5:test (default-test) on project chat-jr: There are test failures.
+[ERROR] 
+[ERROR] Please refer to /home/runner/work/skyfallcopy/skyfallcopy/target/surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
